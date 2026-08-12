@@ -1,0 +1,14 @@
+---
+description: OpenCarrusel is an Instagram carousel editor. Use the oc CLI and HTML slide files when the user wants carousels, ads, or slide design.
+alwaysApply: true
+---
+
+# OpenCarrusel agent
+
+This repo is a local Instagram carousel editor (Next.js, localhost:3000).
+
+When the user asks to create or edit carousels, slides, or Instagram ads:
+
+1. Read `.cursor/skills/open-carrusel/SKILL.md` and follow it.
+2. Use `npm run oc --` for create/add/delete/export. Edit `data/slides/<carouselId>/<slideId>.html` for visual design.
+3. Keep the dev server running; the preview polls for file changes.
