@@ -36,9 +36,9 @@ export function CarouselPreview({
           <div className="w-16 h-20 border-2 border-dashed border-muted-foreground/30 rounded-lg mx-auto mb-4 flex items-center justify-center">
             <span className="text-2xl opacity-30">+</span>
           </div>
-          <p className="text-sm font-medium">No slides yet</p>
-          <p className="text-xs mt-1 max-w-[200px]">
-            Use the AI assistant to create your first carousel slide
+          <p className="text-sm font-medium">Sin diapositivas</p>
+          <p className="text-xs mt-1 max-w-[220px]">
+            Pulsa + en la tira, edita el HTML, o pide a Cursor que las diseñe.
           </p>
         </div>
       </div>

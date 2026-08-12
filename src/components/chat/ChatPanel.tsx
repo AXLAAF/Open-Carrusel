@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ReferenceImages } from "./ReferenceImages";
-import { AlertCircle, Plug } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { AgentGuide } from "./AgentGuide";
 import type { ReferenceImage } from "@/types/carousel";
 
 interface Message {
@@ -118,7 +119,7 @@ export function ChatPanel({
         if (!response.ok) {
           const err = await response.json().catch(() => ({}));
           throw new Error(
-            (err as { error?: string }).error || "Failed to connect to AI"
+            (err as { error?: string }).error || "Agent Connected to Xooktech"
           );
         }
 
@@ -230,20 +231,35 @@ export function ChatPanel({
 
   if (!claudeAvailable) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-        <Plug className="h-10 w-10 text-muted-foreground mb-3" />
-        <h3 className="font-semibold text-sm mb-1">Connect Claude CLI</h3>
-        <p className="text-xs text-muted-foreground max-w-[200px]">
-          Install Claude CLI to enable AI-powered carousel creation.{" "}
-          <a
-            href="https://docs.anthropic.com/en/docs/claude-code"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-accent underline"
-          >
-            Install guide
-          </a>
-        </p>
+      <div className="h-full flex flex-col">
+        <div className="px-4 py-3 border-b border-border">
+          <h2 className="text-sm font-semibold">Agente</h2>
+          <p className="text-xs text-muted-foreground">
+            Cursor o CLI — Claude CLI opcional
+          </p>
+        </div>
+        <ReferenceImages
+          carouselId={carouselId}
+          images={referenceImages}
+          onImagesChange={() => onStreamEnd?.()}
+        />
+        <div className="flex-1 overflow-y-auto">
+          <AgentGuide carouselId={carouselId} />
+          <div className="px-5 pb-5">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              También puedes instalar{" "}
+              <a
+                href="https://docs.anthropic.com/en/docs/claude-code"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent underline"
+              >
+                Claude CLI
+              </a>{" "}
+              para el chat embebido. El editor funciona igual sin él.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -254,7 +270,7 @@ export function ChatPanel({
         <div>
           <h2 className="text-sm font-semibold">AI Assistant</h2>
           <p className="text-xs text-muted-foreground">
-            Describe the carousel you want to create
+            Chat, Cursor o <span className="font-mono">npm run oc</span>
           </p>
         </div>
         {messages.length > 0 && (

@@ -61,7 +61,7 @@ if (!claudePath) {
 if (claudePath) {
   add(CHECK, "Claude CLI", claudePath);
 } else {
-  add(FAIL, "Claude CLI", "not found — install from https://docs.anthropic.com/en/docs/claude-code", true);
+  add(WARN, "Claude CLI", "optional — Cursor + `npm run oc` work without it");
 }
 
 // 3. Dependencies
@@ -100,6 +100,12 @@ if (platform() !== "win32") {
   }
 }
 add(portFree ? CHECK : INFO, "Port 3000", portStatus);
+
+if (existsSync("scripts/oc.mjs")) {
+  add(CHECK, "CLI (oc)", "npm run oc -- help");
+} else {
+  add(WARN, "CLI (oc)", "scripts/oc.mjs missing");
+}
 
 // Output
 const labelWidth = Math.max(...checks.map((c) => c.label.length));

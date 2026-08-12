@@ -31,6 +31,33 @@
   --color-destructive: var(--destructive);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Xooktech Fonts */
+  --font-borscha: "BorschaBold", sans-serif;
+  --font-borscha-regular: "BorschaRegular", sans-serif;
+  --font-rostex: "RostexRegular", sans-serif;
+}
+
+/* Xooktech Fonts Declarations */
+@font-face {
+  font-family: "BorschaBold";
+  src: url("/fonts/Borscha-Bold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "BorschaRegular";
+  src: url("/fonts/Borscha-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "RostexRegular";
+  src: url("/fonts/Rostex-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
 }
 
 body {
@@ -38,6 +65,64 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* --- XOOKTECH BRAND STYLES --- */
+.xook-slide {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 80px;
+  text-align: center;
+  position: relative;
+  background: linear-gradient(135deg, #1B2B6B 0%, #2D4BD4 50%, #00D4FF 100%);
+  color: #FFFFFF;
+  overflow: hidden;
+}
+
+.xook-title {
+  font-family: "BorschaBold", sans-serif;
+  font-size: 80px;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 30px;
+  text-shadow: 0 0 30px rgba(255,255,255,0.35);
+  letter-spacing: -2px;
+}
+
+.xook-body {
+  font-family: "BorschaRegular", sans-serif;
+  font-size: 32px;
+  line-height: 1.4;
+  opacity: 0.9;
+  max-width: 800px;
+}
+
+.xook-tag {
+  font-family: "BorschaBold", sans-serif;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(12px);
+  padding: 20px 40px;
+  border: 2px solid rgba(255,255,255,0.3);
+  font-size: 40px;
+  margin-bottom: 50px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+}
+
+.xook-logo {
+  font-family: "RostexRegular", sans-serif;
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+/* ----------------------------- */
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
@@ -142,7 +227,7 @@ body {
   }
 }
 
-/* Stagger for initial card grid — uses animation-fill-mode: backwards so hover/active transforms take over after mount completes */
+/* Stagger for initial card grid */
 .oc-stagger > * {
   animation: oc-stagger-in 280ms var(--ease-out-strong) backwards;
 }
@@ -151,20 +236,13 @@ body {
 .oc-stagger > *:nth-child(3) { animation-delay: 80ms; }
 .oc-stagger > *:nth-child(4) { animation-delay: 120ms; }
 .oc-stagger > *:nth-child(5) { animation-delay: 160ms; }
-.oc-stagger > *:nth-child(6) { animation-delay: 200ms; }
-.oc-stagger > *:nth-child(7) { animation-delay: 240ms; }
-.oc-stagger > *:nth-child(8) { animation-delay: 280ms; }
-.oc-stagger > *:nth-child(9) { animation-delay: 320ms; }
-.oc-stagger > *:nth-child(10) { animation-delay: 360ms; }
-.oc-stagger > *:nth-child(11) { animation-delay: 400ms; }
-.oc-stagger > *:nth-child(12) { animation-delay: 440ms; }
 
 @keyframes oc-stagger-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Slide preview crossfade on slide change (key-based remount) */
+/* Slide preview crossfade */
 @keyframes oc-slide-in {
   from { opacity: 0; transform: translateX(var(--oc-slide-from, 12px)); }
   to { opacity: 1; transform: translateX(0); }
@@ -173,7 +251,6 @@ body {
   animation: oc-slide-in 240ms var(--ease-out-strong);
 }
 
-/* Press feedback baseline — buttons use this via utility */
 .oc-press {
   transition: transform 160ms var(--ease-out-strong),
               background-color 160ms ease,
@@ -185,7 +262,6 @@ body {
   transform: scale(0.97);
 }
 
-/* Streaming cursor (replaces raw animate-pulse for the chat caret) */
 @keyframes oc-caret {
   0%, 55% { opacity: 1; }
   60%, 100% { opacity: 0; }
@@ -194,7 +270,6 @@ body {
   animation: oc-caret 900ms steps(1, end) infinite;
 }
 
-/* Reduced motion — fewer and gentler, not zero (per Emil's skill) */
 @media (prefers-reduced-motion: reduce) {
   [data-oc-overlay][data-state="open"],
   [data-oc-overlay][data-state="closed"],

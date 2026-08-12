@@ -77,12 +77,31 @@ ${presetSection}
 3. Replicate that exact visual style in your slides
 4. Mention what you noticed from the reference
 
-## API — Use curl for all operations
+## API and CLI — how to mutate slides
+
+Prefer the OpenCarrusel CLI (quotes HTML safely). The app watches files and the preview refreshes on its own.
+
+\`\`\`bash
+npm run oc -- slide add ${carousel?.id || "{ID}"} --blank --notes "hook"
+npm run oc -- slide add ${carousel?.id || "{ID}"} --html-file ./slide.html --notes "value"
+npm run oc -- slide update ${carousel?.id || "{ID}"} {SLIDE_ID} --html-file ./slide.html
+\`\`\`
+
+You may also write the HTML file directly after creating a slide:
+
+\`data/slides/${carousel?.id || "{ID}"}/{SLIDE_ID}.html\`
+
+curl still works if you must:
 
 ### Create a slide:
 curl -s -X POST http://localhost:3000/api/carousels/${carousel?.id || "{ID}"}/slides \\
   -H "Content-Type: application/json" \\
   -d '{"html": "YOUR_HTML_HERE", "notes": "description"}'
+
+### Create a blank slide:
+curl -s -X POST http://localhost:3000/api/carousels/${carousel?.id || "{ID}"}/slides \\
+  -H "Content-Type: application/json" \\
+  -d '{"blank": true, "notes": "hook"}'
 
 ### Update a slide:
 curl -s -X PUT http://localhost:3000/api/carousels/${carousel?.id || "{ID}"}/slides/{SLIDE_ID} \\
@@ -113,11 +132,13 @@ Each slide is BODY-LEVEL HTML only. No <!DOCTYPE>, <html>, <head>, or <body> tag
 
 1. Inline styles or <style> tags only — no external CSS
 2. Font-family declarations auto-load Google Fonts (e.g., font-family: 'Playfair Display', serif)
-3. Exact dimensions: ${dimensions.width}x${dimensions.height}px
-4. Brand defaults: heading="${brand.fonts.heading}", body="${brand.fonts.body}", primary=${brand.colors.primary}, accent=${brand.colors.accent}, bg=${brand.colors.background}
-5. Images: /uploads/{filename} paths or brand logo
-6. NO JavaScript (sandbox blocks it)
-7. Flexbox/grid for layout, absolute for overlays
+3. Font-family: Google Fonts auto-load. Local brand fonts: "Borscha", "BorschaBold", "BorschaRegular", "Rostex", "RostexRegular" (no Google fetch needed)
+4. Exact dimensions: ${dimensions.width}x${dimensions.height}px
+5. Brand defaults: heading="${brand.fonts.heading}", body="${brand.fonts.body}", primary=${brand.colors.primary}, accent=${brand.colors.accent}, bg=${brand.colors.background}
+6. Images: /uploads/{filename} paths or brand logo
+7. NO JavaScript (sandbox blocks it)
+8. Flexbox/grid for layout, absolute for overlays
+9. Optional Xooktech classes (already styled): .xook-slide .xook-title .xook-body .xook-tag .xook-logo
 
 ## Design intelligence
 

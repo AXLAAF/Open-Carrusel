@@ -2,6 +2,14 @@ import { readDataSafe, writeData } from "./data";
 import { generateId, now } from "./utils";
 import type { Carousel, CarouselsData, Slide, AspectRatio, ReferenceImage } from "@/types/carousel";
 import { MAX_SLIDES, MAX_VERSIONS } from "@/types/carousel";
+import {
+  writeSlideHtml,
+  readSlideHtml,
+  deleteSlideHtml,
+  deleteCarouselSlideFiles,
+  hydrateCarouselSlides,
+  hydrateSlideHtml,
+} from "./slide-files";
 
 const FILE = "carousels.json";
 
@@ -15,12 +23,28 @@ async function save(data: CarouselsData): Promise<void> {
 
 export async function listCarousels(): Promise<Carousel[]> {
   const data = await load();
-  return data.carousels.filter((c) => !c.isTemplate);
+  const list = data.carousels.filter((c) => !c.isTemplate);
+  return Promise.all(list.map((c) => hydrateCarouselSlides(c)));
 }
 
 export async function getCarousel(id: string): Promise<Carousel | null> {
   const data = await load();
-  return data.carousels.find((c) => c.id === id) ?? null;
+  const carousel = data.carousels.find((c) => c.id === id) ?? null;
+  if (!carousel) return null;
+  const hydrated = await hydrateCarouselSlides(carousel);
+  let changed = false;
+  for (let i = 0; i < carousel.slides.length; i++) {
+    const next = hydrated.slides[i];
+    if (next && carousel.slides[i].html !== next.html) {
+      carousel.slides[i].html = next.html;
+      changed = true;
+    }
+  }
+  if (changed) {
+    carousel.updatedAt = now();
+    await save(data);
+  }
+  return { ...carousel, slides: hydrated.slides };
 }
 
 export async function createCarousel(
@@ -59,8 +83,9 @@ export async function updateCarousel(
 
 export async function duplicateCarousel(id: string): Promise<Carousel | null> {
   const data = await load();
-  const source = data.carousels.find((c) => c.id === id);
-  if (!source) return null;
+  const found = data.carousels.find((c) => c.id === id);
+  if (!found) return null;
+  const source = await hydrateCarouselSlides(found);
 
   const duplicate: Carousel = {
     ...source,
@@ -80,6 +105,9 @@ export async function duplicateCarousel(id: string): Promise<Carousel | null> {
 
   data.carousels.push(duplicate);
   await save(data);
+  await Promise.all(
+    duplicate.slides.map((s) => writeSlideHtml(duplicate.id, s.id, s.html))
+  );
   return duplicate;
 }
 
@@ -89,6 +117,7 @@ export async function deleteCarousel(id: string): Promise<boolean> {
   if (idx === -1) return false;
   data.carousels.splice(idx, 1);
   await save(data);
+  await deleteCarouselSlideFiles(id);
   return true;
 }
 
@@ -114,6 +143,7 @@ export async function addSlide(
   carousel.slides.push(slide);
   carousel.updatedAt = now();
   await save(data);
+  await writeSlideHtml(carouselId, slide.id, html);
   return slide;
 }
 
@@ -128,9 +158,10 @@ export async function updateSlide(
   const slide = carousel.slides.find((s) => s.id === slideId);
   if (!slide) return null;
 
-  // Save current HTML to version history before overwriting
-  if (updates.html && updates.html !== slide.html) {
-    slide.previousVersions.push(slide.html);
+  const currentHtml = (await readSlideHtml(carouselId, slideId)) ?? slide.html;
+
+  if (updates.html && updates.html !== currentHtml) {
+    slide.previousVersions.push(currentHtml);
     if (slide.previousVersions.length > MAX_VERSIONS) {
       slide.previousVersions.shift();
     }
@@ -139,6 +170,35 @@ export async function updateSlide(
   Object.assign(slide, updates);
   carousel.updatedAt = now();
   await save(data);
+  if (updates.html) {
+    await writeSlideHtml(carouselId, slideId, slide.html);
+  }
+  return slide;
+}
+
+export async function duplicateSlide(
+  carouselId: string,
+  slideId: string
+): Promise<Slide | null> {
+  const data = await load();
+  const carousel = data.carousels.find((c) => c.id === carouselId);
+  if (!carousel) return null;
+  if (carousel.slides.length >= MAX_SLIDES) return null;
+  const found = carousel.slides.find((s) => s.id === slideId);
+  if (!found) return null;
+  const source = await hydrateSlideHtml(carouselId, found);
+
+  const slide: Slide = {
+    id: generateId(),
+    html: source.html,
+    previousVersions: [],
+    order: carousel.slides.length,
+    notes: source.notes,
+  };
+  carousel.slides.push(slide);
+  carousel.updatedAt = now();
+  await save(data);
+  await writeSlideHtml(carouselId, slide.id, slide.html);
   return slide;
 }
 
@@ -153,12 +213,12 @@ export async function deleteSlide(
   if (idx === -1) return false;
 
   carousel.slides.splice(idx, 1);
-  // Re-order remaining slides
   carousel.slides.forEach((s, i) => {
     s.order = i;
   });
   carousel.updatedAt = now();
   await save(data);
+  await deleteSlideHtml(carouselId, slideId);
   return true;
 }
 
@@ -198,6 +258,7 @@ export async function undoSlide(
   slide.html = previousHtml;
   carousel.updatedAt = now();
   await save(data);
+  await writeSlideHtml(carouselId, slideId, previousHtml);
   return slide;
 }
 

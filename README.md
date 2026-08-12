@@ -89,7 +89,7 @@ It's open source under MIT. Fork it, tweak the system prompt, ship your own vari
 
 That's it. Dependencies install, the dev server starts, your browser opens. Now design carousels by chatting.
 
-### Manual path (if you don't use Claude Code)
+### Manual path (no Claude Code required)
 
 ```bash
 git clone https://github.com/Hainrixz/open-carrusel.git
@@ -98,7 +98,7 @@ npm run setup        # installs deps + seeds /data/
 npm run dev          # starts http://localhost:3000
 ```
 
-You won't get the AI chat without Claude Code installed (the in-app agent shells out to the `claude` CLI), but the editor and export still work for static slides.
+Design slides in the editor, with **Cursor**, or with `npm run oc`. The in-app chat panel needs Claude Code; everything else works without it.
 
 ---
 
@@ -122,14 +122,28 @@ You won't get the AI chat without Claude Code installed (the in-app agent shells
 
 ## 💬 How the AI agent works
 
-The in-app agent is the **Claude CLI** spawned as a subprocess from `/api/chat` with `--allowedTools Bash WebFetch`. Messages stream back to the browser via Server-Sent Events.
+You can design slides in **three ways**. They all write the same data; the preview refreshes on its own.
 
-When you ask for a slide, Claude:
+1. **Cursor** (this repo) — ask the agent to design slides. It uses `npm run oc` and edits `data/slides/<id>/<slideId>.html`.
+2. **CLI** — `npm run oc -- help`. Works from any terminal, Claude Code, Gemini CLI, or a script.
+3. **In-app chat** — optional. If [Claude Code](https://docs.anthropic.com/en/docs/claude-code) is installed, the left panel spawns it as a subprocess (`/api/chat`, SSE).
 
-1. Reads your brand config + active carousel state from the system prompt
-2. Writes the slide as a complete HTML/CSS string
-3. POSTs it to `/api/carousels/[id]/slides` via `curl` (using its `Bash` tool)
-4. The new slide appears in your filmstrip seconds later
+### CLI cheat sheet
+
+```bash
+npm run oc -- list
+npm run oc -- create "Morning habits" --ratio 4:5
+npm run oc -- slide add <id> --blank --notes "hook"
+npm run oc -- slide update <id> <slideId> --html-file ./hook.html
+npm run oc -- export <id>
+```
+
+When you ask for a slide, the agent:
+
+1. Reads brand config + carousel state (`npm run oc -- brand` / `get`)
+2. Writes body-level HTML/CSS
+3. Saves via `oc slide add/update` or by writing the HTML file
+4. The filmstrip updates within ~2 seconds
 
 ### Example chat
 

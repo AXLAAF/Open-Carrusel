@@ -4,6 +4,7 @@ import path from "path";
 import sharp from "sharp";
 import { wrapSlideHtml, extractFontFamilies } from "./slide-html";
 import { getInlinedFontCSS } from "./fonts";
+import { getInlinedLocalFontCSS } from "./local-fonts";
 import type { Slide, AspectRatio } from "@/types/carousel";
 import { DIMENSIONS } from "@/types/carousel";
 
@@ -71,7 +72,11 @@ export async function exportSlide(
 
   // Get inlined font CSS
   const fontFamilies = extractFontFamilies(slide.html);
-  const inlinedFontCss = await getInlinedFontCSS(fontFamilies);
+  const [googleCss, localCss] = await Promise.all([
+    getInlinedFontCSS(fontFamilies),
+    getInlinedLocalFontCSS(),
+  ]);
+  const inlinedFontCss = [googleCss, localCss].filter(Boolean).join("\n");
 
   // Inline images
   const inlinedHtml = await inlineImages(slide.html);

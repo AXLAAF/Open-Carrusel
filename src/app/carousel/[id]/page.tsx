@@ -3,22 +3,37 @@
 import { useEffect, useState, useCallback, useRef, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, Grid3X3, Bookmark, Maximize2 } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
-import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { CarouselPreview } from "@/components/editor/CarouselPreview";
 import { SlideFilmstrip } from "@/components/editor/SlideFilmstrip";
-import { AspectRatioSelector } from "@/components/editor/AspectRatioSelector";
-import { ExportButton } from "@/components/editor/ExportButton";
 import { CaptionPanel } from "@/components/editor/CaptionPanel";
-import { SafeZoneOverlay } from "@/components/editor/SafeZoneOverlay";
 import { FullscreenPreview } from "@/components/editor/FullscreenPreview";
+import { EditorToolbar } from "@/components/editor/EditorToolbar";
+import { SlideInspector } from "@/components/editor/SlideInspector";
 import type { Carousel, AspectRatio } from "@/types/carousel";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+function carouselUnchanged(a: Carousel, b: Carousel): boolean {
+  if (
+    a.updatedAt !== b.updatedAt ||
+    a.name !== b.name ||
+    a.aspectRatio !== b.aspectRatio ||
+    a.caption !== b.caption ||
+    a.slides.length !== b.slides.length
+  ) {
+    return false;
+  }
+  return a.slides.every(
+    (s, i) =>
+      s.id === b.slides[i].id &&
+      s.html === b.slides[i].html &&
+      s.notes === b.slides[i].notes
+  );
 }
 
 export default function CarouselEditorPage({ params }: PageProps) {
@@ -29,19 +44,16 @@ export default function CarouselEditorPage({ params }: PageProps) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [claudeAvailable, setClaudeAvailable] = useState(true);
   const [chatOpen, setChatOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
-
-  // Confirm dialog state
-  const [confirmState, setConfirmState] = useState<{
-    open: boolean;
-    title: string;
-    description: string;
-    onConfirm: () => void;
-  }>({ open: false, title: "", description: "", onConfirm: () => {} });
-
-  // Ref for focusing chat input when + button is clicked
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
   const chatInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const fetchCarousel = useCallback(async () => {
@@ -52,14 +64,16 @@ export default function CarouselEditorPage({ params }: PageProps) {
         return;
       }
       if (res.ok) {
-        const data = await res.json();
+        const data: Carousel = await res.json();
         setCarousel((prev) => {
-          // If new slides were added during generation, jump to the latest slide
+          if (prev && carouselUnchanged(prev, data)) return prev;
           if (prev && data.slides.length > prev.slides.length) {
             setActiveSlide(data.slides.length - 1);
           } else {
             setActiveSlide((prevIdx) =>
-              data.slides.length === 0 ? 0 : Math.min(prevIdx, data.slides.length - 1)
+              data.slides.length === 0
+                ? 0
+                : Math.min(prevIdx, data.slides.length - 1)
             );
           }
           return data;
@@ -70,7 +84,6 @@ export default function CarouselEditorPage({ params }: PageProps) {
     }
   }, [id]);
 
-  // Initial data load
   useEffect(() => {
     const load = async () => {
       await fetchCarousel();
@@ -85,14 +98,30 @@ export default function CarouselEditorPage({ params }: PageProps) {
     load();
   }, [fetchCarousel]);
 
-  // Poll for carousel updates while AI is generating slides
   useEffect(() => {
-    if (!isGenerating) return;
-    const interval = setInterval(() => {
+    const tick = () => {
+      if (document.hidden) return;
       fetchCarousel();
-    }, 500);
+    };
+    const ms = isGenerating ? 500 : 2000;
+    const interval = setInterval(tick, ms);
     return () => clearInterval(interval);
   }, [isGenerating, fetchCarousel]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "TEXTAREA" || tag === "INPUT") return;
+      if (!carousel) return;
+      if (e.key === "ArrowLeft") {
+        setActiveSlide((i) => Math.max(0, i - 1));
+      } else if (e.key === "ArrowRight") {
+        setActiveSlide((i) => Math.min(carousel.slides.length - 1, i + 1));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [carousel]);
 
   const handleAspectChange = async (ratio: AspectRatio) => {
     if (!carousel) return;
@@ -101,10 +130,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ aspectRatio: ratio }),
     });
-    if (res.ok) {
-      const updated = await res.json();
-      setCarousel(updated);
-    }
+    if (res.ok) setCarousel(await res.json());
   };
 
   const handleDeleteSlide = (slideId: string) => {
@@ -112,8 +138,8 @@ export default function CarouselEditorPage({ params }: PageProps) {
     const slideIndex = carousel.slides.findIndex((s) => s.id === slideId);
     setConfirmState({
       open: true,
-      title: `Delete slide ${slideIndex + 1}?`,
-      description: "This action cannot be undone.",
+      title: `¿Borrar diapositiva ${slideIndex + 1}?`,
+      description: "Esta acción no se puede deshacer.",
       onConfirm: async () => {
         const res = await fetch(`/api/carousels/${id}/slides/${slideId}`, {
           method: "DELETE",
@@ -130,27 +156,37 @@ export default function CarouselEditorPage({ params }: PageProps) {
     if (res.ok) await fetchCarousel();
   };
 
+  const handleAddSlide = async () => {
+    const res = await fetch(`/api/carousels/${id}/slides`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blank: true, notes: "blank" }),
+    });
+    if (res.ok) {
+      await fetchCarousel();
+      setInspectorOpen(true);
+    }
+  };
+
+  const handleDuplicateSlide = async (slideId: string) => {
+    await fetch(`/api/carousels/${id}/slides/${slideId}/duplicate`, {
+      method: "POST",
+    });
+    await fetchCarousel();
+  };
+
   const handleDeleteCarousel = useCallback(() => {
     if (!carousel) return;
     setConfirmState({
       open: true,
-      title: `Delete "${carousel.name}"?`,
-      description: "This will permanently delete the carousel and all its slides.",
+      title: `¿Borrar "${carousel.name}"?`,
+      description: "Se eliminará el carrusel y todas sus diapositivas.",
       onConfirm: async () => {
         const res = await fetch(`/api/carousels/${id}`, { method: "DELETE" });
         if (res.ok) router.push("/");
       },
     });
   }, [carousel, id, router]);
-
-  const handleStreamStart = useCallback(() => {
-    setIsGenerating(true);
-  }, []);
-
-  const handleStreamEnd = useCallback(() => {
-    setIsGenerating(false);
-    fetchCarousel();
-  }, [fetchCarousel]);
 
   const handleReorderSlides = useCallback(
     async (slideIds: string[]) => {
@@ -164,23 +200,12 @@ export default function CarouselEditorPage({ params }: PageProps) {
     [id, fetchCarousel]
   );
 
-  const handleAddSlideRequest = useCallback(() => {
-    setChatOpen(true);
-    // Focus chat input after a tick (to let panel render)
-    setTimeout(() => {
-      chatInputRef.current?.focus();
-    }, 100);
-  }, []);
-
   if (notFound) {
     return (
       <div className="h-full flex flex-col items-center justify-center gap-4">
-        <p className="text-lg font-semibold">Carousel not found</p>
-        <p className="text-sm text-muted-foreground">
-          This carousel may have been deleted.
-        </p>
+        <p className="text-lg font-semibold">Carrusel no encontrado</p>
         <Link href="/" className="text-sm text-accent underline">
-          Back to dashboard
+          Volver al dashboard
         </Link>
       </div>
     );
@@ -194,6 +219,8 @@ export default function CarouselEditorPage({ params }: PageProps) {
     );
   }
 
+  const current = carousel.slides[activeSlide] ?? null;
+
   return (
     <div className="h-full flex flex-col">
       <TopBar
@@ -206,14 +233,10 @@ export default function CarouselEditorPage({ params }: PageProps) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name }),
           });
-          if (res.ok) {
-            const updated = await res.json();
-            setCarousel(updated);
-          }
+          if (res.ok) setCarousel(await res.json());
         }}
       />
 
-      {/* Fullscreen preview */}
       <FullscreenPreview
         open={showFullscreen}
         onOpenChange={setShowFullscreen}
@@ -223,100 +246,56 @@ export default function CarouselEditorPage({ params }: PageProps) {
         onActiveChange={setActiveSlide}
       />
 
-      {/* Confirm dialog */}
       <ConfirmDialog
         open={confirmState.open}
         onOpenChange={(open) => setConfirmState((s) => ({ ...s, open }))}
         title={confirmState.title}
         description={confirmState.description}
-        confirmLabel="Delete"
+        confirmLabel="Borrar"
         variant="destructive"
         onConfirm={confirmState.onConfirm}
       />
 
-      {/* Main editor area */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Chat panel */}
         {chatOpen && (
           <div className="oc-fade w-80 border-r border-border shrink-0 flex flex-col bg-surface">
             <ChatPanel
               carouselId={id}
               claudeAvailable={claudeAvailable}
               referenceImages={carousel.referenceImages || []}
-              onStreamStart={handleStreamStart}
-              onStreamEnd={handleStreamEnd}
+              onStreamStart={() => setIsGenerating(true)}
+              onStreamEnd={() => {
+                setIsGenerating(false);
+                fetchCarousel();
+              }}
               chatInputRef={chatInputRef}
             />
           </div>
         )}
 
-        {/* Right side: toolbar + preview */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          {/* Toolbar */}
-          <div className="h-11 border-b border-border bg-surface flex items-center px-4 gap-3 shrink-0">
-            <AspectRatioSelector
-              value={carousel.aspectRatio}
-              onChange={handleAspectChange}
-            />
-            <div className="flex-1" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFullscreen(true)}
-              className="text-muted-foreground"
-              aria-label="Fullscreen preview"
-              title="Fullscreen preview"
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={showSafeZones ? "outline" : "ghost"}
-              size="sm"
-              onClick={() => setShowSafeZones(!showSafeZones)}
-              className={showSafeZones ? "border-accent text-accent" : "text-muted-foreground"}
-              aria-label="Toggle safe zones"
-              title="Instagram safe zones"
-            >
-              <Grid3X3 className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async () => {
-                await fetch("/api/templates", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ carouselId: carousel.id }),
-                });
-              }}
-              className="text-muted-foreground"
-              aria-label="Save as template"
-              title="Save as template"
-            >
-              <Bookmark className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDeleteCarousel}
-              className="text-muted-foreground hover:text-destructive"
-              aria-label="Delete carousel"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-            <button
-              onClick={() => setChatOpen(!chatOpen)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md border border-border hover:bg-muted"
-            >
-              {chatOpen ? "Hide Chat" : "Show Chat"}
-            </button>
-            <ExportButton
-              carouselId={carousel.id}
-              slideCount={carousel.slides.length}
-            />
-          </div>
+          <EditorToolbar
+            aspectRatio={carousel.aspectRatio}
+            onAspectChange={handleAspectChange}
+            onFullscreen={() => setShowFullscreen(true)}
+            showSafeZones={showSafeZones}
+            onToggleSafeZones={() => setShowSafeZones((v) => !v)}
+            onSaveTemplate={async () => {
+              await fetch("/api/templates", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ carouselId: carousel.id }),
+              });
+            }}
+            onDeleteCarousel={handleDeleteCarousel}
+            chatOpen={chatOpen}
+            onToggleChat={() => setChatOpen((v) => !v)}
+            inspectorOpen={inspectorOpen}
+            onToggleInspector={() => setInspectorOpen((v) => !v)}
+            carouselId={carousel.id}
+            slideCount={carousel.slides.length}
+          />
 
-          {/* Carousel preview */}
           <CarouselPreview
             slides={carousel.slides}
             aspectRatio={carousel.aspectRatio}
@@ -325,15 +304,26 @@ export default function CarouselEditorPage({ params }: PageProps) {
             showSafeZones={showSafeZones}
           />
 
-          {/* Caption panel */}
           <CaptionPanel
+            carouselId={id}
             caption={carousel.caption}
             hashtags={carousel.hashtags}
+            onSaved={fetchCarousel}
           />
         </div>
+
+        {inspectorOpen && (
+          <div className="oc-fade w-[380px] border-l border-border shrink-0 flex flex-col bg-surface min-h-0">
+            <SlideInspector
+              carouselId={id}
+              slide={current}
+              slideIndex={activeSlide}
+              onSaved={fetchCarousel}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Filmstrip */}
       <SlideFilmstrip
         slides={carousel.slides}
         aspectRatio={carousel.aspectRatio}
@@ -341,7 +331,8 @@ export default function CarouselEditorPage({ params }: PageProps) {
         onActiveChange={setActiveSlide}
         onDeleteSlide={handleDeleteSlide}
         onUndoSlide={handleUndoSlide}
-        onAddSlideRequest={handleAddSlideRequest}
+        onAddSlide={handleAddSlide}
+        onDuplicateSlide={handleDuplicateSlide}
         onReorderSlides={handleReorderSlides}
         isGenerating={isGenerating}
       />

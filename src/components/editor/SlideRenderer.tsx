@@ -22,17 +22,23 @@ export function SlideRenderer({
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const { width: slideW, height: slideH } = DIMENSIONS[aspectRatio];
 
-  const srcDoc = useMemo(
-    () => wrapSlideHtml(html, aspectRatio),
-    [html, aspectRatio]
-  );
+  const srcDoc = useMemo(() => {
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : undefined;
+    return wrapSlideHtml(html, aspectRatio, { assetOrigin: origin });
+  }, [html, aspectRatio]);
 
   const measure = useCallback(() => {
     const el = outerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     if (rect.width > 0 && rect.height > 0) {
-      setDims({ w: rect.width, h: rect.height });
+      setDims((prev) => {
+        if (prev && Math.abs(prev.w - rect.width) < 1 && Math.abs(prev.h - rect.height) < 1) {
+          return prev;
+        }
+        return { w: rect.width, h: rect.height };
+      });
     }
   }, []);
 
