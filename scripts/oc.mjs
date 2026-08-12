@@ -1,0 +1,795 @@
+#!/usr/bin/env node
+/**
+ * OpenCarrusel CLI (oc)
+ *
+ * Agent-friendly: Cursor, Claude Code, Gemini CLI, or any subprocess.
+ * Prefers the running app at OC_API (default http://localhost:3000).
+ * Falls back to data/carousels.json + data/slides/ if the server is down.
+ *
+ *   npm run oc -- list
+ *   npm run oc -- slide add <carouselId> --blank
+ *   npm run oc -- slide update <carouselId> <slideId> --html-file ./hook.html
+ */
+
+import { readFile, writeFile, mkdir, rename, rm, readdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const DATA = path.join(ROOT, "data");
+const CAROUSELS_FILE = path.join(DATA, "carousels.json");
+const BASE = (process.env.OC_API || "http://localhost:3000").replace(/\/$/, "");
+const RATIOS = new Set(["1:1", "4:5", "9:16"]);
+const MAX_SLIDES = 20;
+
+const args = process.argv.slice(2);
+const jsonOut = takeFlag("json");
+const apiOnly = takeFlag("api");
+const fileOnly = takeFlag("file");
+
+function takeFlag(name) {
+  const i = args.findIndex((a) => a === `--${name}`);
+  if (i === -1) return false;
+  args.splice(i, 1);
+  return true;
+}
+
+function takeOpt(name) {
+  const i = args.findIndex((a) => a === `--${name}`);
+  if (i === -1) return undefined;
+  const val = args[i + 1];
+  if (!val || val.startsWith("--")) {
+    args.splice(i, 1);
+    return "";
+  }
+  args.splice(i, 2);
+  return val;
+}
+
+function die(message, code = 1) {
+  if (jsonOut) {
+    console.log(JSON.stringify({ ok: false, error: message }));
+  } else {
+    console.error(`oc: ${message}`);
+  }
+  process.exit(code);
+}
+
+function print(data, human) {
+  if (jsonOut) {
+    console.log(JSON.stringify(data, null, 2));
+  } else {
+    console.log(human ?? JSON.stringify(data, null, 2));
+  }
+}
+
+function slideFile(carouselId, slideId) {
+  return path.join(DATA, "slides", carouselId, `${slideId}.html`);
+}
+
+async function readHtmlInput() {
+  const file = takeOpt("html-file");
+  const inline = takeOpt("html");
+  if (file === "-") {
+    return readStdin();
+  }
+  if (file) {
+    const abs = path.isAbsolute(file) ? file : path.resolve(process.cwd(), file);
+    return readFile(abs, "utf-8");
+  }
+  if (inline != null) return inline;
+  return null;
+}
+
+function readStdin() {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    process.stdin.setEncoding("utf-8");
+    process.stdin.on("data", (c) => chunks.push(c));
+    process.stdin.on("end", () => resolve(chunks.join("")));
+    process.stdin.on("error", reject);
+  });
+}
+
+async function api(method, pathname, body, raw = false) {
+  const res = await fetch(`${BASE}${pathname}`, {
+    method,
+    headers: body && !raw ? { "Content-Type": "application/json" } : undefined,
+    body: body == null ? undefined : raw ? body : JSON.stringify(body),
+  });
+  if (raw) {
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text.slice(0, 400)}`);
+    }
+    return res;
+  }
+  const text = await res.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = { raw: text };
+  }
+  if (!res.ok) {
+    throw new Error(data?.error || `HTTP ${res.status}`);
+  }
+  return data;
+}
+
+async function serverUp() {
+  try {
+    const res = await fetch(`${BASE}/api/carousels`, {
+      signal: AbortSignal.timeout(1500),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function loadStore() {
+  try {
+    const raw = await readFile(CAROUSELS_FILE, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return { carousels: [] };
+  }
+}
+
+async function saveStore(store) {
+  await mkdir(DATA, { recursive: true });
+  const tmp = CAROUSELS_FILE + ".tmp";
+  await writeFile(tmp, JSON.stringify(store, null, 2), "utf-8");
+  await rename(tmp, CAROUSELS_FILE);
+}
+
+async function writeSlide(carouselId, slideId, html) {
+  const file = slideFile(carouselId, slideId);
+  await mkdir(path.dirname(file), { recursive: true });
+  const tmp = file + ".tmp";
+  await writeFile(tmp, html, "utf-8");
+  await rename(tmp, file);
+}
+
+async function materialize(carousel) {
+  await Promise.all(
+    (carousel.slides || []).map((s) =>
+      s.html ? writeSlide(carousel.id, s.id, s.html) : Promise.resolve()
+    )
+  );
+}
+
+async function hydrate(carousel) {
+  if (!carousel) return null;
+  const slides = await Promise.all(
+    carousel.slides.map(async (s) => {
+      try {
+        const html = await readFile(slideFile(carousel.id, s.id), "utf-8");
+        return { ...s, html };
+      } catch {
+        if (s.html) await writeSlide(carousel.id, s.id, s.html);
+        return s;
+      }
+    })
+  );
+  return { ...carousel, slides };
+}
+
+function now() {
+  return new Date().toISOString();
+}
+
+function blankHtml(ratio = "4:5") {
+  const dims = { "1:1": [1080, 1080], "4:5": [1080, 1350], "9:16": [1080, 1920] };
+  const [w, h] = dims[ratio] || dims["4:5"];
+  return `<div class="xook-slide" style="width:${w}px;height:${h}px">
+  <div class="xook-tag">NUEVO</div>
+  <h1 class="xook-title">Titular</h1>
+  <p class="xook-body">Edita data/slides/&lt;carouselId&gt;/&lt;slideId&gt;.html o usa oc slide update.</p>
+  <div class="xook-logo">Open Carrusel</div>
+</div>`;
+}
+
+async function useApi() {
+  if (fileOnly) return false;
+  if (apiOnly) return true;
+  return serverUp();
+}
+
+const HELP = `OpenCarrusel CLI — edit carousels from Cursor, Claude, Gemini, or a terminal.
+
+Usage:
+  npm run oc -- <command> [args] [--json]
+
+Carousels
+  list
+  create <name> [--ratio 1:1|4:5|9:16]
+  get <id>
+  delete <id>
+  rename <id> <name>
+  ratio <id> <1:1|4:5|9:16>
+  open <id>                 Print editor URL
+  path <id> [slideId]       Print HTML file path on disk
+
+Slides
+  slides <id>
+  slide add <id> [--blank] [--html-file f] [--html '...'] [--notes '...']
+  slide get <id> <slideId>
+  slide update <id> <slideId> [--html-file f] [--html '...'] [--notes '...']
+  slide delete <id> <slideId>
+  slide duplicate <id> <slideId>
+  slide undo <id> <slideId>
+  reorder <id> <id1,id2,...>
+
+Workspace (best for Cursor)
+  dump <id> [dir]           Write numbered HTML files (default data/workspace/<id>)
+  apply <id> [dir]          Read those files back into the carousel
+
+Other
+  caption <id> [--text '...'] [--hashtags tag1,tag2]
+  brand
+  export <id> [outfile.zip]
+
+Flags
+  --json        Machine-readable output
+  --api         Require localhost API (no file fallback)
+  --file        Skip API, write data/ directly
+  --html-file - Read HTML from stdin
+
+Env
+  OC_API        API origin (default http://localhost:3000)
+
+Cursor workflow
+  1. npm run oc -- create "Mi carrusel" --ratio 4:5
+  2. npm run oc -- slide add <id> --blank
+  3. Edit data/slides/<id>/<slideId>.html
+  4. Preview at http://localhost:3000/carousel/<id> (auto-refreshes)
+`;
+
+async function main() {
+  const cmd = args.shift();
+  if (!cmd || cmd === "help" || cmd === "-h" || cmd === "--help") {
+    console.log(HELP);
+    return;
+  }
+
+  const http = await useApi();
+
+  switch (cmd) {
+    case "list":
+      return cmdList(http);
+    case "create":
+      return cmdCreate(http);
+    case "get":
+      return cmdGet(http);
+    case "delete":
+      return cmdDelete(http);
+    case "rename":
+      return cmdRename(http);
+    case "ratio":
+      return cmdRatio(http);
+    case "open":
+      return cmdOpen();
+    case "path":
+      return cmdPath();
+    case "slides":
+      return cmdSlides(http);
+    case "slide":
+      return cmdSlide(http);
+    case "reorder":
+      return cmdReorder(http);
+    case "dump":
+      return cmdDump(http);
+    case "apply":
+      return cmdApply(http);
+    case "caption":
+      return cmdCaption(http);
+    case "brand":
+      return cmdBrand(http);
+    case "export":
+      return cmdExport(http);
+    default:
+      die(`unknown command "${cmd}". Run: npm run oc -- help`);
+  }
+}
+
+async function cmdList(http) {
+  const carousels = http
+    ? (await api("GET", "/api/carousels")).carousels
+    : (await loadStore()).carousels.filter((c) => !c.isTemplate);
+
+  print(
+    carousels.map((c) => ({
+      id: c.id,
+      name: c.name,
+      aspectRatio: c.aspectRatio,
+      slides: c.slides?.length ?? 0,
+      updatedAt: c.updatedAt,
+    })),
+    carousels.length === 0
+      ? "(no carousels)"
+      : carousels
+          .map(
+            (c) =>
+              `${c.id}  ${(c.slides?.length ?? 0).toString().padStart(2)} slides  ${c.aspectRatio}  ${c.name}`
+          )
+          .join("\n")
+  );
+}
+
+async function cmdCreate(http) {
+  const name = args.shift();
+  if (!name) die("create requires a name");
+  const ratio = takeOpt("ratio") || "4:5";
+  if (!RATIOS.has(ratio)) die(`invalid ratio "${ratio}"`);
+
+  if (http) {
+    const created = await api("POST", "/api/carousels", {
+      name,
+      aspectRatio: ratio,
+    });
+    print(
+      created,
+      `Created ${created.id}\nEditor: ${BASE}/carousel/${created.id}`
+    );
+    return;
+  }
+
+  const store = await loadStore();
+  const carousel = {
+    id: randomUUID(),
+    name,
+    aspectRatio: ratio,
+    slides: [],
+    referenceImages: [],
+    chatSessionId: null,
+    isTemplate: false,
+    tags: [],
+    createdAt: now(),
+    updatedAt: now(),
+  };
+  store.carousels.push(carousel);
+  await saveStore(store);
+  print(carousel, `Created ${carousel.id}\nEditor: ${BASE}/carousel/${carousel.id}`);
+}
+
+async function getCarousel(http, id) {
+  if (http) return api("GET", `/api/carousels/${id}`);
+  const store = await loadStore();
+  const found = store.carousels.find((c) => c.id === id);
+  if (!found) throw new Error("Carousel not found");
+  return hydrate(found);
+}
+
+async function cmdGet(http) {
+  const id = args.shift();
+  if (!id) die("get requires a carousel id");
+  const c = await getCarousel(http, id);
+  await materialize(c);
+  print(
+    c,
+    `${c.name}  ${c.id}\n${c.aspectRatio}  ${c.slides.length} slides\n${BASE}/carousel/${c.id}\n` +
+      c.slides
+        .map(
+          (s, i) =>
+            `  ${String(i + 1).padStart(2)}. ${s.id}  ${slideFile(c.id, s.id)}`
+        )
+        .join("\n")
+  );
+}
+
+async function cmdDelete(http) {
+  const id = args.shift();
+  if (!id) die("delete requires a carousel id");
+  if (http) {
+    await api("DELETE", `/api/carousels/${id}`);
+  } else {
+    const store = await loadStore();
+    const idx = store.carousels.findIndex((c) => c.id === id);
+    if (idx === -1) die("Carousel not found");
+    store.carousels.splice(idx, 1);
+    await saveStore(store);
+    await rm(path.join(DATA, "slides", id), { recursive: true, force: true });
+  }
+  print({ ok: true, id }, `Deleted ${id}`);
+}
+
+async function cmdRename(http) {
+  const id = args.shift();
+  const name = args.shift();
+  if (!id || !name) die("rename <id> <name>");
+  if (http) {
+    const updated = await api("PUT", `/api/carousels/${id}`, { name });
+    print(updated, `Renamed to "${updated.name}"`);
+    return;
+  }
+  const store = await loadStore();
+  const c = store.carousels.find((x) => x.id === id);
+  if (!c) die("Carousel not found");
+  c.name = name;
+  c.updatedAt = now();
+  await saveStore(store);
+  print(c, `Renamed to "${name}"`);
+}
+
+async function cmdRatio(http) {
+  const id = args.shift();
+  const ratio = args.shift();
+  if (!id || !ratio) die("ratio <id> <1:1|4:5|9:16>");
+  if (!RATIOS.has(ratio)) die(`invalid ratio "${ratio}"`);
+  if (http) {
+    const updated = await api("PUT", `/api/carousels/${id}`, {
+      aspectRatio: ratio,
+    });
+    print(updated, `Aspect ratio → ${ratio}`);
+    return;
+  }
+  const store = await loadStore();
+  const c = store.carousels.find((x) => x.id === id);
+  if (!c) die("Carousel not found");
+  c.aspectRatio = ratio;
+  c.updatedAt = now();
+  await saveStore(store);
+  print(c, `Aspect ratio → ${ratio}`);
+}
+
+function cmdOpen() {
+  const id = args.shift();
+  if (!id) die("open requires a carousel id");
+  const url = `${BASE}/carousel/${id}`;
+  print({ url }, url);
+}
+
+function cmdPath() {
+  const id = args.shift();
+  const slideId = args.shift();
+  if (!id) die("path <carouselId> [slideId]");
+  if (slideId) {
+    const p = slideFile(id, slideId);
+    print({ path: p }, p);
+    return;
+  }
+  const dir = path.join(DATA, "slides", id);
+  print({ path: dir }, dir);
+}
+
+async function cmdSlides(http) {
+  const id = args.shift();
+  if (!id) die("slides requires a carousel id");
+  const c = await getCarousel(http, id);
+  await materialize(c);
+  print(
+    c.slides.map((s, i) => ({
+      index: i + 1,
+      id: s.id,
+      notes: s.notes,
+      file: slideFile(c.id, s.id),
+    })),
+    c.slides.length === 0
+      ? "(no slides)"
+      : c.slides
+          .map(
+            (s, i) =>
+              `${String(i + 1).padStart(2)}. ${s.id}${s.notes ? `  — ${s.notes}` : ""}\n     ${slideFile(c.id, s.id)}`
+          )
+          .join("\n")
+  );
+}
+
+async function cmdSlide(http) {
+  const sub = args.shift();
+  const id = args.shift();
+  if (!sub || !id) die("slide <add|get|update|delete|duplicate|undo> <carouselId> ...");
+
+  switch (sub) {
+    case "add":
+      return slideAdd(http, id);
+    case "get":
+      return slideGet(http, id);
+    case "update":
+      return slideUpdate(http, id);
+    case "delete":
+      return slideDelete(http, id);
+    case "duplicate":
+      return slideDuplicate(http, id);
+    case "undo":
+      return slideUndo(http, id);
+    default:
+      die(`unknown slide command "${sub}"`);
+  }
+}
+
+async function slideAdd(http, id) {
+  const notes = takeOpt("notes") || "";
+  const blank = takeFlag("blank");
+  let html = await readHtmlInput();
+  if (!html && !blank) {
+    html = null;
+  }
+
+  if (http) {
+    const body = html
+      ? { html, notes }
+      : { blank: true, notes };
+    const slide = await api("POST", `/api/carousels/${id}/slides`, body);
+    const file = slideFile(id, slide.id);
+    print(
+      { ...slide, file },
+      `Added slide ${slide.id}\nFile: ${file}\nEdit that file; the preview refreshes on its own.`
+    );
+    return;
+  }
+
+  const store = await loadStore();
+  const c = store.carousels.find((x) => x.id === id);
+  if (!c) die("Carousel not found");
+  if (c.slides.length >= MAX_SLIDES) die("Max slides reached");
+  const slide = {
+    id: randomUUID(),
+    html: html || blankHtml(c.aspectRatio),
+    previousVersions: [],
+    order: c.slides.length,
+    notes,
+  };
+  c.slides.push(slide);
+  c.updatedAt = now();
+  await saveStore(store);
+  await writeSlide(id, slide.id, slide.html);
+  const file = slideFile(id, slide.id);
+  print({ ...slide, file }, `Added slide ${slide.id}\nFile: ${file}`);
+}
+
+async function slideGet(http, id) {
+  const slideId = args.shift();
+  if (!slideId) die("slide get <carouselId> <slideId>");
+  const c = await getCarousel(http, id);
+  await materialize(c);
+  const slide = c.slides.find((s) => s.id === slideId);
+  if (!slide) die("Slide not found");
+  if (jsonOut) {
+    print({ ...slide, file: slideFile(id, slideId) });
+  } else {
+    process.stdout.write(slide.html);
+    if (!slide.html.endsWith("\n")) process.stdout.write("\n");
+  }
+}
+
+async function slideUpdate(http, id) {
+  const slideId = args.shift();
+  if (!slideId) die("slide update <carouselId> <slideId> [--html-file f]");
+  const notes = takeOpt("notes");
+  const html = await readHtmlInput();
+  if (html == null && notes == null) die("provide --html-file, --html, or --notes");
+
+  const updates = {};
+  if (html != null) updates.html = html;
+  if (notes != null) updates.notes = notes;
+
+  if (http) {
+    const slide = await api(
+      "PUT",
+      `/api/carousels/${id}/slides/${slideId}`,
+      updates
+    );
+    print(slide, `Updated ${slideId}`);
+    return;
+  }
+
+  const store = await loadStore();
+  const c = store.carousels.find((x) => x.id === id);
+  if (!c) die("Carousel not found");
+  const slide = c.slides.find((s) => s.id === slideId);
+  if (!slide) die("Slide not found");
+  if (updates.html && updates.html !== slide.html) {
+    slide.previousVersions.push(slide.html);
+    if (slide.previousVersions.length > 5) slide.previousVersions.shift();
+    slide.html = updates.html;
+    await writeSlide(id, slideId, updates.html);
+  }
+  if (updates.notes != null) slide.notes = updates.notes;
+  c.updatedAt = now();
+  await saveStore(store);
+  print(slide, `Updated ${slideId}`);
+}
+
+async function slideDelete(http, id) {
+  const slideId = args.shift();
+  if (!slideId) die("slide delete <carouselId> <slideId>");
+  if (http) {
+    await api("DELETE", `/api/carousels/${id}/slides/${slideId}`);
+  } else {
+    const store = await loadStore();
+    const c = store.carousels.find((x) => x.id === id);
+    if (!c) die("Carousel not found");
+    const idx = c.slides.findIndex((s) => s.id === slideId);
+    if (idx === -1) die("Slide not found");
+    c.slides.splice(idx, 1);
+    c.slides.forEach((s, i) => {
+      s.order = i;
+    });
+    c.updatedAt = now();
+    await saveStore(store);
+    await rm(slideFile(id, slideId), { force: true });
+  }
+  print({ ok: true, id: slideId }, `Deleted slide ${slideId}`);
+}
+
+async function slideDuplicate(http, id) {
+  const slideId = args.shift();
+  if (!slideId) die("slide duplicate <carouselId> <slideId>");
+  if (http) {
+    const slide = await api(
+      "POST",
+      `/api/carousels/${id}/slides/${slideId}/duplicate`
+    );
+    print(
+      { ...slide, file: slideFile(id, slide.id) },
+      `Duplicated → ${slide.id}\nFile: ${slideFile(id, slide.id)}`
+    );
+    return;
+  }
+  const store = await loadStore();
+  const c = store.carousels.find((x) => x.id === id);
+  if (!c) die("Carousel not found");
+  const source = c.slides.find((s) => s.id === slideId);
+  if (!source) die("Slide not found");
+  if (c.slides.length >= MAX_SLIDES) die("Max slides reached");
+  const hydrated = await hydrate(c);
+  const html = hydrated.slides.find((s) => s.id === slideId)?.html || source.html;
+  const slide = {
+    id: randomUUID(),
+    html,
+    previousVersions: [],
+    order: c.slides.length,
+    notes: source.notes,
+  };
+  c.slides.push(slide);
+  c.updatedAt = now();
+  await saveStore(store);
+  await writeSlide(id, slide.id, html);
+  print({ ...slide, file: slideFile(id, slide.id) }, `Duplicated → ${slide.id}`);
+}
+
+async function slideUndo(http, id) {
+  const slideId = args.shift();
+  if (!slideId) die("slide undo <carouselId> <slideId>");
+  if (http) {
+    const slide = await api(
+      "POST",
+      `/api/carousels/${id}/slides/${slideId}/undo`
+    );
+    print(slide, `Undid last change on ${slideId}`);
+    return;
+  }
+  die("undo requires the API (start the app with npm run dev)");
+}
+
+async function cmdReorder(http) {
+  const id = args.shift();
+  const list = args.shift();
+  if (!id || !list) die("reorder <carouselId> <id1,id2,...>");
+  const slideIds = list.split(",").map((s) => s.trim()).filter(Boolean);
+  if (http) {
+    await api("PUT", `/api/carousels/${id}/slides`, { slideIds });
+    print({ ok: true, slideIds }, `Reordered ${slideIds.length} slides`);
+    return;
+  }
+  die("reorder requires the API (start the app with npm run dev)");
+}
+
+async function cmdDump(http) {
+  const id = args.shift();
+  if (!id) die("dump <carouselId> [dir]");
+  const dirArg = args.shift();
+  const dir = dirArg
+    ? path.resolve(process.cwd(), dirArg)
+    : path.join(DATA, "workspace", id);
+  const c = await getCarousel(http, id);
+  await materialize(c);
+  await mkdir(dir, { recursive: true });
+  const meta = {
+    id: c.id,
+    name: c.name,
+    aspectRatio: c.aspectRatio,
+    caption: c.caption || "",
+    hashtags: c.hashtags || [],
+    slides: c.slides.map((s) => ({ id: s.id, notes: s.notes })),
+  };
+  await writeFile(path.join(dir, "_meta.json"), JSON.stringify(meta, null, 2));
+  const files = [];
+  for (let i = 0; i < c.slides.length; i++) {
+    const s = c.slides[i];
+    const name = `${String(i + 1).padStart(2, "0")}-${s.id}.html`;
+    await writeFile(path.join(dir, name), s.html, "utf-8");
+    files.push(name);
+  }
+  print(
+    { dir, files },
+    `Dumped ${files.length} slides → ${dir}\nEdit the HTML files, then: npm run oc -- apply ${id}`
+  );
+}
+
+async function cmdApply(http) {
+  const id = args.shift();
+  if (!id) die("apply <carouselId> [dir]");
+  const dirArg = args.shift();
+  const dir = dirArg
+    ? path.resolve(process.cwd(), dirArg)
+    : path.join(DATA, "workspace", id);
+  if (!existsSync(dir)) die(`directory not found: ${dir}`);
+
+  const names = (await readdir(dir))
+    .filter((f) => f.endsWith(".html"))
+    .sort();
+
+  for (const name of names) {
+    const html = await readFile(path.join(dir, name), "utf-8");
+    const match = name.match(/^[0-9]+-([0-9a-fA-F-]+)\.html$/);
+    const slideId = match?.[1];
+    if (slideId && http) {
+      try {
+        await api("PUT", `/api/carousels/${id}/slides/${slideId}`, { html });
+        continue;
+      } catch {
+        // fall through to add
+      }
+    }
+    if (http) {
+      await api("POST", `/api/carousels/${id}/slides`, { html, notes: name });
+    } else if (slideId) {
+      await writeSlide(id, slideId, html);
+    }
+  }
+
+  print({ ok: true, applied: names.length, dir }, `Applied ${names.length} files from ${dir}`);
+}
+
+async function cmdCaption(http) {
+  const id = args.shift();
+  if (!id) die("caption <id> [--text '...'] [--hashtags a,b]");
+  const text = takeOpt("text");
+  const tags = takeOpt("hashtags");
+  const body = {};
+  if (text != null) body.caption = text;
+  if (tags != null) {
+    body.hashtags = tags
+      .split(/[,\s]+/)
+      .map((t) => t.replace(/^#/, "").trim())
+      .filter(Boolean);
+  }
+  if (Object.keys(body).length === 0) die("provide --text and/or --hashtags");
+  if (!http) die("caption requires the API (start the app with npm run dev)");
+  const updated = await api("PUT", `/api/carousels/${id}/caption`, body);
+  print(updated, "Caption saved");
+}
+
+async function cmdBrand(http) {
+  if (!http) {
+    try {
+      const brand = JSON.parse(await readFile(path.join(DATA, "brand.json"), "utf-8"));
+      print(brand);
+    } catch {
+      die("brand.json not found");
+    }
+    return;
+  }
+  print(await api("GET", "/api/brand"));
+}
+
+async function cmdExport(http) {
+  const id = args.shift();
+  if (!id) die("export <carouselId> [outfile.zip]");
+  if (!http) die("export requires the running app (npm run dev)");
+  const outfile = args.shift() || path.join(process.cwd(), `carousel-${id}.zip`);
+  const res = await api("POST", `/api/carousels/${id}/export`, undefined, true);
+  const buf = Buffer.from(await res.arrayBuffer());
+  await writeFile(outfile, buf);
+  print({ file: outfile, bytes: buf.length }, `Exported ${outfile} (${buf.length} bytes)`);
+}
+
+main().catch((err) => {
+  die(err.message || String(err));
+});
