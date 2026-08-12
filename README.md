@@ -7,8 +7,7 @@
 **Local-first. Open source. One command to start.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-1a1a2e.svg?style=flat-square)](./LICENSE)
-[![Built with Claude](https://img.shields.io/badge/built%20with-Claude-e94560.svg?style=flat-square)](https://claude.ai)
-[![Made by tododeia](https://img.shields.io/badge/made%20by-tododeia-1a1a2e.svg?style=flat-square)](https://www.tododeia.com)
+[![GitHub](https://img.shields.io/badge/github-AXLAAF/Open--Carrusel-1a1a2e.svg?style=flat-square)](https://github.com/AXLAAF/Open-Carrusel)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000.svg?style=flat-square)](https://nextjs.org)
 [![React 19](https://img.shields.io/badge/React-19-149eca.svg?style=flat-square)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg?style=flat-square)](https://www.typescriptlang.org)
@@ -36,7 +35,6 @@
 - [Roadmap](#%EF%B8%8F-roadmap)
 - [Contributing](#-contributing)
 - [Acknowledgments](#-acknowledgments)
-- [About the maker](#-about-the-maker)
 - [License](#-license)
 
 ---
@@ -78,8 +76,8 @@ It's open source under MIT. Fork it, tweak the system prompt, ship your own vari
 1. **Install [Claude Code](https://docs.anthropic.com/en/docs/claude-code)** and authenticate.
 2. **Clone and open the repo** in Claude Code:
    ```bash
-   git clone https://github.com/Hainrixz/open-carrusel.git
-   cd open-carrusel
+   git clone https://github.com/AXLAAF/Open-Carrusel.git
+   cd Open-Carrusel
    claude
    ```
 3. In the Claude Code prompt, type:
@@ -92,8 +90,8 @@ That's it. Dependencies install, the dev server starts, your browser opens. Now 
 ### Manual path (no Claude Code required)
 
 ```bash
-git clone https://github.com/Hainrixz/open-carrusel.git
-cd open-carrusel
+git clone https://github.com/AXLAAF/Open-Carrusel.git
+cd Open-Carrusel
 npm run setup        # installs deps + seeds /data/
 npm run dev          # starts http://localhost:3000
 ```
@@ -394,31 +392,14 @@ Good first contributions: roadmap items above, more brand templates, accessibili
 
 ---
 
-## 👋 About the maker
-
-Open Carrusel is built and maintained by **[tododeia](https://www.tododeia.com)** — a content + AI lab building tools for creators who want leverage without lock-in.
-
-Founder: **Enrique Rocha** ([@soyenriquerocha](https://www.instagram.com/soyenriquerocha)) — Tijuanense, content creator, builds AI tools so creators don't fall behind. Also behind [@tododeia](https://www.instagram.com/tododeia) and [@metara.ai](https://www.instagram.com/metara.ai).
-
-If Open Carrusel saves you time, the best support is:
-
-- ⭐ **Star this repo** to help others find it
-- 🐛 **Open an issue** when something breaks (or send a PR)
-- 📲 **Tag [@soyenriquerocha](https://www.instagram.com/soyenriquerocha) or [@tododeia](https://www.instagram.com/tododeia)** when you ship a carousel made with it — we love seeing it
-- 🌐 **Visit [tododeia.com](https://www.tododeia.com)** for more AI-for-creators content
-
----
-
 ## 📄 License
 
-[MIT](./LICENSE) — do anything you want with it. Attribution appreciated, never required.
+[MIT](./LICENSE) — do anything you want with it.
 
 ---
 
 <div align="center">
 
-**Built with ❤️ in Tijuana by [tododeia](https://www.tododeia.com).**
-
-*Hecho para creadores que construyen el futuro.*
+**Maintained by [XookTech](https://github.com/AXLAAF/Open-Carrusel).**
 
 </div>
