@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Hainrixz/open-carrusel"
+    "url": "https://github.com/AXLAAF/Open-Carrusel"
   },
   "scripts": {
     "setup": "node scripts/setup.mjs",

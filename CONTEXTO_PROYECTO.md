@@ -5,6 +5,7 @@
 - **Nombre del Proyecto**: OpenCarrusel
 - **Descripción**: Generador y editor de carruseles y anuncios de Instagram. Se edita a mano, con Cursor, con el CLI `oc`, o con el chat de Claude CLI (opcional).
 - **Ruta Absoluta**: `/home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/OpenCarrusel`
+- **Repositorio GitHub**: `https://github.com/AXLAAF/Open-Carrusel`
 - **URL Local**: `http://localhost:3000`
 
 ---
