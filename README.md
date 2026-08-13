@@ -34,7 +34,6 @@
 - [Troubleshooting](#-troubleshooting)
 - [Roadmap](#%EF%B8%8F-roadmap)
 - [Contributing](#-contributing)
-- [Acknowledgments](#-acknowledgments)
 - [License](#-license)
 
 ---
@@ -249,8 +248,8 @@ For more, see [`CLAUDE.md`](./CLAUDE.md) — the architecture doc tuned for AI a
 | AI agent     | [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) subprocess           |
 | Image export | [Puppeteer](https://pptr.dev), [Sharp](https://sharp.pixelplumbing.com)           |
 | Zipping      | [Archiver](https://github.com/archiverjs/node-archiver)                           |
-| Storage      | JSON files + [async-mutex](https://github.com/DirtyHairy/async-mutex)             |
-| Animation    | CSS-first ([Emil Kowalski's design philosophy](https://animations.dev))           |
+| Storage      | JSON files + [async-mutex](https://www.npmjs.com/package/async-mutex)             |
+| Animation    | CSS custom properties and easings in `globals.css`                                |
 
 ---
 
@@ -270,7 +269,7 @@ open-carrusel/
 │   ├── app/
 │   │   ├── api/              ← every backend route (chat, carousels, slides, export, brand, ...)
 │   │   ├── carousel/[id]/    ← editor page
-│   │   ├── globals.css       ← Tailwind v4 theme + Emil-style motion tokens
+│   │   ├── globals.css       ← Tailwind v4 theme + motion tokens
 │   │   ├── layout.tsx
 │   │   └── page.tsx          ← dashboard page
 │   ├── components/
@@ -375,20 +374,9 @@ PRs welcome. The bar:
 - **Run `npm run doctor` and `npm run build`** before opening a PR — both should pass clean.
 - **Follow the file conventions** in [`CLAUDE.md`](./CLAUDE.md) — components ≤ 300 lines, types in `src/types/`, libs in `src/lib/`, `cn()` from `src/lib/utils.ts` for class merging, all data writes through `src/lib/data.ts`.
 - **Don't touch the slide rendering contract.** `wrapSlideHtml()` in `src/lib/slide-html.ts` is the seam between preview and export. Change it carefully and test the export round-trip.
-- **Animations follow [Emil Kowalski's philosophy](https://animations.dev)** — CSS-first, custom easings (already defined as CSS variables in `globals.css`), respect `prefers-reduced-motion`. See the `oc-*` utility classes already in `globals.css` before authoring new ones.
+- **Animations are CSS-first** — custom easings in `globals.css`, respect `prefers-reduced-motion`, reuse the `oc-*` utility classes before adding new ones.
 
 Good first contributions: roadmap items above, more brand templates, accessibility audits, real screenshots/demos for the README, translations.
-
----
-
-## 🙏 Acknowledgments
-
-- **[Emil Kowalski](https://emilkowal.ski)** — animation philosophy that shaped the whole motion system. The `oc-*` CSS classes encode his design-engineering principles (custom easings, restraint over excess, `@starting-style` over JS for entries).
-- **[Anthropic](https://www.anthropic.com)** — Claude (the model) and Claude Code (the CLI) are the brain of the in-app agent.
-- **[Vercel](https://vercel.com)** — Next.js + Turbopack make local-first React apps feel snappy.
-- **[Radix UI](https://www.radix-ui.com)** + **[shadcn/ui](https://ui.shadcn.com)** — the patterns underneath the dialog/button/input primitives.
-- **[dnd-kit](https://dndkit.com)** — the only sane drag-and-drop story in React.
-- **[Puppeteer](https://pptr.dev)** + **[Sharp](https://sharp.pixelplumbing.com)** — the export pipeline.
 
 ---
 
