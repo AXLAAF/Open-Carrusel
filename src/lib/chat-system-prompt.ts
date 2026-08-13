@@ -79,13 +79,18 @@ ${presetSection}
 
 ## API and CLI — how to mutate slides
 
-Prefer the OpenCarrusel CLI (quotes HTML safely). The app watches files and the preview refreshes on its own.
+Prefer the OpenCarrusel CLI. Compose a full carousel, then the user corrects by hand in the editor. Do not require chat for every tweak.
 
 \`\`\`bash
-npm run oc -- slide add ${carousel?.id || "{ID}"} --blank --notes "hook"
-npm run oc -- slide add ${carousel?.id || "{ID}"} --html-file ./slide.html --notes "value"
+npm run oc -- compose --name "..." --topic "..." --points "Uno|Dos|Tres" --cta "Guarda esto"
+npm run oc -- slide add ${carousel?.id || "{ID}"} --layout hook --title "..." --body "..." --kicker "CARRUSEL"
+npm run oc -- slide add ${carousel?.id || "{ID}"} --layout list --title "..." --items "A|B|C"
 npm run oc -- slide update ${carousel?.id || "{ID}"} {SLIDE_ID} --html-file ./slide.html
+npm run oc -- export ${carousel?.id || "{ID}"}
 \`\`\`
+
+Layouts (required on new slides): hook, setup, value, list, quote, stat, summary, cta.
+Mark blocks with data-oc-layout, data-oc-field, and data-oc-layer so the visual editor can edit text, type, and layers without you.
 
 You may also write the HTML file directly after creating a slide:
 

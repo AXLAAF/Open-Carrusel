@@ -16,6 +16,13 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
+import {
+  bindCli,
+  dispatchStudio,
+  cmdBrandExtra,
+  addSlideFromLayout,
+  exportWithOptions,
+} from "./lib/oc-studio.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = path.join(ROOT, "data");
@@ -199,39 +206,62 @@ async function useApi() {
   return serverUp();
 }
 
-const HELP = `OpenCarrusel CLI — edit carousels from Cursor, Claude, Gemini, or a terminal.
+const HELP = `OpenCarrusel CLI — the editor understands this. AI is optional.
 
 Usage:
   npm run oc -- <command> [args] [--json]
+
+How to make a carousel (no AI)
+  1. npm run oc -- brand set --name "Marca" --accent "#e94560" --heading Inter --body Inter
+  2. npm run oc -- compose --name "5 errores" --topic "Tu hook" --points "Uno|Dos|Tres" --cta "Guarda esto"
+     or: npm run oc -- compose brief.json
+  3. Open the editor URL and correct text, type, layers, and export by hand
+  4. npm run oc -- export <id> --format png
+
+Compose / layouts
+  compose [--name] [--topic] [--points a|b|c] [--cta] [--ratio] [--caption] [--hashtags]
+  compose <brief.json>
+  layouts
 
 Carousels
   list
   create <name> [--ratio 1:1|4:5|9:16]
   get <id>
   delete <id>
+  duplicate <id>
   rename <id> <name>
   ratio <id> <1:1|4:5|9:16>
-  open <id>                 Print editor URL
-  path <id> [slideId]       Print HTML file path on disk
+  open <id>
+  path <id> [slideId]
 
 Slides
   slides <id>
+  slide add <id> --layout hook|setup|value|list|quote|stat|summary|cta
+                 [--title] [--body] [--kicker] [--footer] [--items a|b|c]
+                 [--quote] [--author] [--stat] [--label] [--notes]
   slide add <id> [--blank] [--html-file f] [--html '...'] [--notes '...']
-  slide get <id> <slideId>
-  slide update <id> <slideId> [--html-file f] [--html '...'] [--notes '...']
-  slide delete <id> <slideId>
-  slide duplicate <id> <slideId>
-  slide undo <id> <slideId>
+  slide get|update|delete|duplicate|undo <id> <slideId>
+  slide restyle <id> <slideId> [--layout hook]
   reorder <id> <id1,id2,...>
 
-Workspace (best for Cursor)
-  dump <id> [dir]           Write numbered HTML files (default data/workspace/<id>)
-  apply <id> [dir]          Read those files back into the carousel
+Workspace
+  dump <id> [dir]
+  apply <id> [dir]
+
+Brand / templates / media
+  brand
+  brand set --name --primary --secondary --accent --background --surface --heading --body --logo --keywords
+  brand apply <carouselId>
+  templates list|save <carouselId>|use <templateId>
+  presets list|apply <presetId> [--carousel id]
+  upload <image.png>
+  caption <id> [--text '...'] [--hashtags tag1,tag2]
+
+Export
+  export <id> [--slide id] [--format png|jpg] [--quality 90] [--naming index|id|name] [--out file]
 
 Other
-  caption <id> [--text '...'] [--hashtags tag1,tag2]
-  brand
-  export <id> [outfile.zip]
+  doctor
 
 Flags
   --json        Machine-readable output
@@ -242,11 +272,9 @@ Flags
 Env
   OC_API        API origin (default http://localhost:3000)
 
-Cursor workflow
-  1. npm run oc -- create "Mi carrusel" --ratio 4:5
-  2. npm run oc -- slide add <id> --blank
-  3. Edit data/slides/<id>/<slideId>.html
-  4. Preview at http://localhost:3000/carousel/<id> (auto-refreshes)
+Manual edits
+  data/slides/<carouselId>/<slideId>.html
+  Preview: http://localhost:3000/carousel/<id> (polls; no restart)
 `;
 
 async function main() {
@@ -257,6 +285,24 @@ async function main() {
   }
 
   const http = await useApi();
+  bindCli({
+    args,
+    ROOT,
+    DATA,
+    BASE,
+    MAX_SLIDES,
+    die,
+    print,
+    takeOpt,
+    takeFlag,
+    api,
+    loadStore,
+    saveStore,
+    writeSlide,
+    slideFile,
+    now,
+    randomUUID,
+  });
 
   switch (cmd) {
     case "list":
@@ -287,10 +333,21 @@ async function main() {
       return cmdApply(http);
     case "caption":
       return cmdCaption(http);
-    case "brand":
+    case "brand": {
+      const extra = await cmdBrandExtra(http);
+      if (extra !== false) return extra;
       return cmdBrand(http);
+    }
     case "export":
       return cmdExport(http);
+    case "compose":
+    case "templates":
+    case "presets":
+    case "upload":
+    case "duplicate":
+    case "doctor":
+    case "layouts":
+      return dispatchStudio(cmd, http);
     default:
       die(`unknown command "${cmd}". Run: npm run oc -- help`);
   }
@@ -497,12 +554,29 @@ async function cmdSlide(http) {
       return slideDuplicate(http, id);
     case "undo":
       return slideUndo(http, id);
+    case "restyle":
+      return slideRestyle(http, id);
     default:
       die(`unknown slide command "${sub}"`);
   }
 }
 
+async function slideRestyle(http, id) {
+  const slideId = args.shift();
+  if (!slideId) die("slide restyle <carouselId> <slideId> [--layout hook]");
+  const layout = takeOpt("layout");
+  if (!http) die("restyle requires the running app (npm run dev)");
+  const slide = await api(
+    "POST",
+    `/api/carousels/${id}/slides/${slideId}/restyle`,
+    layout ? { layout } : {}
+  );
+  print(slide, `Restyled ${slideId}`);
+}
+
 async function slideAdd(http, id) {
+  const laid = await addSlideFromLayout(http, id);
+  if (laid) return;
   const notes = takeOpt("notes") || "";
   const blank = takeFlag("blank");
   let html = await readHtmlInput();
@@ -781,8 +855,17 @@ async function cmdBrand(http) {
 
 async function cmdExport(http) {
   const id = args.shift();
-  if (!id) die("export <carouselId> [outfile.zip]");
+  if (!id) die("export <carouselId> [--out file] [--slide id] [--format png|jpg]");
   if (!http) die("export requires the running app (npm run dev)");
+  if (
+    args.includes("--slide") ||
+    args.includes("--format") ||
+    args.includes("--quality") ||
+    args.includes("--naming") ||
+    args.includes("--out")
+  ) {
+    return exportWithOptions(http, id);
+  }
   const outfile = args.shift() || path.join(process.cwd(), `carousel-${id}.zip`);
   const res = await api("POST", `/api/carousels/${id}/export`, undefined, true);
   const buf = Buffer.from(await res.arrayBuffer());

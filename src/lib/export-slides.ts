@@ -8,6 +8,16 @@ import { getInlinedLocalFontCSS } from "./local-fonts";
 import type { Slide, AspectRatio } from "@/types/carousel";
 import { DIMENSIONS } from "@/types/carousel";
 
+export type ExportFormat = "png" | "jpg";
+export type ExportNaming = "index" | "id" | "name";
+
+export interface ExportOptions {
+  format?: ExportFormat;
+  quality?: number;
+  naming?: ExportNaming;
+  carouselName?: string;
+}
+
 // Singleton browser with lifecycle management
 let browser: Browser | null = null;
 let exportCount = 0;
@@ -113,13 +123,7 @@ export async function exportSlide(
 
     exportCount++;
 
-    // Post-process with Sharp: enforce sRGB
-    const processed = await sharp(screenshotBuffer)
-      .toColorspace("srgb")
-      .png()
-      .toBuffer();
-
-    return processed;
+    return encodeExport(screenshotBuffer, { format: "png", quality: 100 });
   } finally {
     await page.close().catch(() => {});
   }
@@ -129,22 +133,68 @@ export async function exportSlide(
  * Export all slides of a carousel to PNG buffers.
  * Processes up to 3 slides concurrently.
  */
+export async function encodeExport(
+  pngBuffer: Buffer | Uint8Array,
+  options: Pick<ExportOptions, "format" | "quality"> = {}
+): Promise<Buffer> {
+  const format = options.format === "jpg" ? "jpg" : "png";
+  const quality = clampQuality(options.quality);
+  const image = sharp(pngBuffer).toColorspace("srgb");
+  if (format === "jpg") {
+    return image.jpeg({ quality, mozjpeg: true }).toBuffer();
+  }
+  const compressionLevel = Math.round((100 - quality) / 11);
+  return image.png({ compressionLevel }).toBuffer();
+}
+
+function clampQuality(quality?: number): number {
+  if (typeof quality !== "number" || Number.isNaN(quality)) return 90;
+  return Math.min(100, Math.max(40, Math.round(quality)));
+}
+
+export function exportFileName(
+  index: number,
+  slideId: string,
+  options: ExportOptions = {}
+): string {
+  const ext = options.format === "jpg" ? "jpg" : "png";
+  const n = String(index + 1).padStart(2, "0");
+  if (options.naming === "id") return `${slideId}.${ext}`;
+  if (options.naming === "name") {
+    const base = (options.carouselName || "carousel")
+      .replace(/[^a-zA-Z0-9-_]+/g, "_")
+      .slice(0, 40) || "carousel";
+    return `${base}-${n}.${ext}`;
+  }
+  return `slide-${index + 1}.${ext}`;
+}
+
 export async function exportAllSlides(
   slides: Slide[],
   aspectRatio: AspectRatio,
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
+  options: ExportOptions = {}
 ): Promise<{ name: string; buffer: Buffer }[]> {
   const results: { name: string; buffer: Buffer }[] = [];
   const CONCURRENCY = 3;
+  const format = options.format === "jpg" ? "jpg" : "png";
+  const quality = clampQuality(options.quality);
 
   for (let i = 0; i < slides.length; i += CONCURRENCY) {
     const batch = slides.slice(i, i + CONCURRENCY);
     const batchResults = await Promise.all(
       batch.map(async (slide, batchIdx) => {
         const idx = i + batchIdx;
-        const buffer = await exportSlide(slide, aspectRatio);
+        const png = await exportSlide(slide, aspectRatio);
+        const buffer =
+          format === "png" && quality >= 95
+            ? png
+            : await encodeExport(png, { format, quality });
         onProgress?.(idx + 1, slides.length);
-        return { name: `slide-${idx + 1}.png`, buffer };
+        return {
+          name: exportFileName(idx, slide.id, { ...options, format }),
+          buffer,
+        };
       })
     );
     results.push(...batchResults);

@@ -2,9 +2,9 @@
 
 # Open Carrusel
 
-### Chat with Claude. Design Instagram carousels. Export pixel-perfect PNGs.
+### Chat with the CLI. Design in the editor. Export pixel-perfect PNGs.
 
-**Local-first. Open source. One command to start.**
+**Local-first. Open source. CLI-first — AI is optional.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-1a1a2e.svg?style=flat-square)](./LICENSE)
 [![GitHub](https://img.shields.io/badge/github-AXLAAF/Open--Carrusel-1a1a2e.svg?style=flat-square)](https://github.com/AXLAAF/Open-Carrusel)
@@ -46,7 +46,9 @@ Designing Instagram carousels eats hours. You either:
 - Wrestle Canva templates that everyone else also uses
 - Hand-craft slides in Figma and lose your weekend
 
-**Open Carrusel takes a different bet.** You chat with Claude — the same model many designers already trust — and it generates real HTML/CSS slides that get screenshotted to PNGs at exact Instagram dimensions. Slides are unique, on-brand, and pixel-perfect. Everything runs on your laptop. Nothing is sent to a cloud you don't control.
+**Open Carrusel takes a different bet.** The CLI knows how to build a carousel. The app is a real editor so you correct by hand. AI can help, but you do not depend on it.
+
+Compose a full carousel from a brief, then tweak type, layers, brand, and export in the UI — or stay in the terminal. Everything runs on your laptop.
 
 It's open source under MIT. Fork it, tweak the system prompt, ship your own variant. No accounts. No subscriptions. No vendor lock-in.
 
@@ -95,44 +97,55 @@ npm run setup        # installs deps + seeds /data/
 npm run dev          # starts http://localhost:3000
 ```
 
-Design slides in the editor, with **Cursor**, or with `npm run oc`. The in-app chat panel needs Claude Code; everything else works without it.
+Design slides in the editor, with **Cursor**, or with `npm run oc`. Claude Code is optional. The in-app chat panel needs it; everything else works without it.
 
 ---
 
 ## 🧰 What you can do
 
-- **Three-panel editor** designed for flow: chat (left), live preview (center), drag-reorderable slide filmstrip (bottom).
-- **Generate slides by chatting**: "Make me a 5-slide carousel about productivity habits — bold sans-serif, dark mode, accent red." Watch them stream in.
-- **Iterate per slide**: "Make slide 3 more minimal", "Change the accent to teal", "Swap the hook for something punchier."
-- **Three Instagram aspect ratios** ready to go: 1:1 (1080×1080), 4:5 (1080×1350), 9:16 (1080×1920).
-- **Brand config** — name, color palette, fonts, logo, style keywords. Claude reads it before every generation so output stays on-brand.
-- **Templates** — save any carousel as a template, reuse it for the next one.
-- **Reference images** — drop in screenshots of carousels you love. Claude studies them to match style.
-- **Drag to reorder** slides via dnd-kit. Undo per-slide if a tweak goes sideways (version history per slide).
-- **Safe-zone overlay** to verify nothing important crops behind Instagram's UI.
-- **Fullscreen preview** for the final review.
-- **One-click export** — Puppeteer screenshots each slide HTML at the exact pixel dimensions Instagram expects, zips them, downloads.
-- **Captions + hashtags** generator built into the editor.
-- **All local** — slides, brand, uploads, exports all live in `/data/` and `/public/uploads/`. Nothing is sent to a cloud you don't control. The only network call is when Claude Code talks to Anthropic.
+- **CLI-first workflow**: `oc compose` builds a full carousel from a topic + points. No chat required.
+- **Manual editor**: text, typography, padding, layers, brand, media, history, and Instagram checklist. AI is a helper, not a gate.
+- **Layouts** the CLI and the UI share: hook, setup, value, list, quote, stat, summary, CTA (`data-oc-field` on every block).
+- **Keyboard + zoom**: duplicate, delete, undo/redo, fit, pan (space-drag), swipe preview.
+- **Brand + style presets** in the editor and via `oc brand` / `oc presets`.
+- **Media library** (`oc upload` or the Medios tab). Images at `/uploads/{file}`.
+- **Pro export**: all slides or one, PNG/JPG, quality, naming — UI or `oc export`.
+- **Captions + hashtags** plus a publish checklist (hook, CTA, safe zones).
+- **Three Instagram aspect ratios**: 1:1 (1080×1080), 4:5 (1080×1350), 9:16 (1080×1920).
+- **Templates**, drag-reorder filmstrip, per-slide history (5 versions).
+- **All local** — `/data/` and `/public/uploads/`. Nothing is sent to a cloud you don't control.
 
 ---
 
-## 💬 How the AI agent works
+## 💬 How it works (CLI + editor, AI optional)
 
 You can design slides in **three ways**. They all write the same data; the preview refreshes on its own.
 
-1. **Cursor** (this repo) — ask the agent to design slides. It uses `npm run oc` and edits `data/slides/<id>/<slideId>.html`.
-2. **CLI** — `npm run oc -- help`. Works from any terminal, Claude Code, Gemini CLI, or a script.
-3. **In-app chat** — optional. If [Claude Code](https://docs.anthropic.com/en/docs/claude-code) is installed, the left panel spawns it as a subprocess (`/api/chat`, SSE).
+1. **CLI** — `npm run oc -- help`. This is the default. Cursor, Gemini, or a terminal can drive it.
+2. **Editor** — correct text, type, layers, brand, and export by hand. Do not wait on AI for every tweak.
+3. **In-app chat** — optional. If [Claude Code](https://docs.anthropic.com/en/docs/claude-code) is installed, the left panel spawns it (`/api/chat`, SSE).
+
+### Make a carousel
+
+```bash
+npm run oc -- brand set --name "Marca" --accent "#e94560" --heading Inter --body Inter
+npm run oc -- compose --name "5 errores" --topic "Tu carrusel no convierte" --points "Hook débil|Texto largo|Sin CTA" --cta "Guarda esto"
+npm run oc -- export <id> --format png
+```
+
+Or pass a brief file: `npm run oc -- compose examples/carousel-brief.json`.
+
+Then open the printed URL and fix copy in Diseño / Capas. HTML also lives at `data/slides/<id>/<slideId>.html`.
 
 ### CLI cheat sheet
 
 ```bash
 npm run oc -- list
-npm run oc -- create "Morning habits" --ratio 4:5
-npm run oc -- slide add <id> --blank --notes "hook"
-npm run oc -- slide update <id> <slideId> --html-file ./hook.html
-npm run oc -- export <id>
+npm run oc -- compose --name "Morning habits" --topic "3 habits" --points "A|B|C" --cta "Save this"
+npm run oc -- slide add <id> --layout hook --title "Stop scrolling" --kicker "CARRUSEL"
+npm run oc -- caption <id> --text "..." --hashtags tag1,tag2
+npm run oc -- export <id> --slide <slideId> --format jpg --quality 90
+npm run oc -- doctor
 ```
 
 When you ask for a slide, the agent:
@@ -357,6 +370,9 @@ Open the brand setup (gear icon) and confirm your colors and style keywords are 
 
 Open ideas — PRs welcome. Tick what you ship, add your own.
 
+- [x] **CLI compose from brief** — `oc compose` builds hook→CTA without chat
+- [x] **Manual studio editor** — text, type, layers, brand, media, history, IG checklist
+- [x] **Pro export** — single slide, PNG/JPG, quality, naming
 - [ ] **Multi-language slide generation** — Spanish-LATAM voice presets so creators don't fight the AI's English defaults
 - [ ] **Reels storyboard mode** — vertical 9:16 with optional text-on-clip annotations
 - [ ] **Twitter/X thread export** — same brand voice, different surface

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SlideRenderer } from "./SlideRenderer";
@@ -13,6 +13,10 @@ interface CarouselPreviewProps {
   activeIndex: number;
   onActiveChange: (index: number) => void;
   showSafeZones?: boolean;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
+  pan?: { x: number; y: number };
+  onPanChange?: (pan: { x: number; y: number }) => void;
 }
 
 export function CarouselPreview({
@@ -21,13 +25,30 @@ export function CarouselPreview({
   activeIndex,
   onActiveChange,
   showSafeZones = false,
+  zoom = 1,
+  onZoomChange,
+  pan = { x: 0, y: 0 },
+  onPanChange,
 }: CarouselPreviewProps) {
   const slide = slides[activeIndex];
-  const prevIndexRef = useRef(activeIndex);
-  const direction = activeIndex >= prevIndexRef.current ? 12 : -12;
+  const spaceRef = useRef(false);
+  const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const [panning, setPanning] = useState(false);
+
   useEffect(() => {
-    prevIndexRef.current = activeIndex;
-  }, [activeIndex]);
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "Space") spaceRef.current = true;
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code === "Space") spaceRef.current = false;
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, []);
 
   if (!slide) {
     return (
@@ -37,19 +58,50 @@ export function CarouselPreview({
             <span className="text-2xl opacity-30">+</span>
           </div>
           <p className="text-sm font-medium">Sin diapositivas</p>
-          <p className="text-xs mt-1 max-w-[220px]">
-            Pulsa + en la tira, edita el HTML, o pide a Cursor que las diseñe.
+          <p className="text-xs mt-1 max-w-[260px]">
+            Pulsa + y elige un layout, usa el CLI (`oc compose`) o edita a mano.
           </p>
         </div>
       </div>
     );
   }
 
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    if (!spaceRef.current && e.button !== 1) return;
+    e.preventDefault();
+    dragRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+    setPanning(true);
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current || !onPanChange) return;
+    const dx = e.clientX - dragRef.current.x;
+    const dy = e.clientY - dragRef.current.y;
+    onPanChange({ x: dragRef.current.panX + dx, y: dragRef.current.panY + dy });
+  };
+
+  const onPointerUp = () => {
+    dragRef.current = null;
+    setPanning(false);
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-0 min-w-0 bg-[#f0f0f0]">
-      {/* Preview area with padding for arrows */}
-      <div className="flex-1 relative min-h-0 p-8 px-14">
-        {/* Left arrow */}
+      <div
+        className={`flex-1 relative min-h-0 p-8 px-14 overflow-hidden ${panning ? "cursor-grabbing" : ""}`}
+        onWheel={(e) => {
+          if (!onZoomChange) return;
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const next = Math.min(4, Math.max(0.25, zoom + (e.deltaY > 0 ? -0.1 : 0.1)));
+            onZoomChange(Math.round(next * 10) / 10);
+          }
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+      >
         <Button
           variant="ghost"
           size="icon"
@@ -61,21 +113,25 @@ export function CarouselPreview({
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
-        {/* Slide fills the padded inner area */}
         <div
           key={slide.id}
           className="oc-slide-in relative w-full h-full"
-          style={{ "--oc-slide-from": `${direction}px` } as CSSProperties}
+          style={
+            {
+              "--oc-slide-from": "12px",
+              transform: `translate(${pan.x}px, ${pan.y}px)`,
+            } as CSSProperties
+          }
         >
           <SlideRenderer
             html={slide.html}
             aspectRatio={aspectRatio}
+            zoom={zoom}
             style={{ width: "100%", height: "100%" }}
           />
           <SafeZoneOverlay aspectRatio={aspectRatio} visible={showSafeZones} />
         </div>
 
-        {/* Right arrow */}
         <Button
           variant="ghost"
           size="icon"
@@ -88,7 +144,6 @@ export function CarouselPreview({
         </Button>
       </div>
 
-      {/* Slide counter dots */}
       {slides.length > 1 && (
         <div className="flex items-center justify-center gap-1.5 pb-3 shrink-0">
           {slides.map((_, i) => (

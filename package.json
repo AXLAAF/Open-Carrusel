@@ -1,7 +1,7 @@
 {
   "name": "open-carrusel",
   "version": "0.1.0",
-  "description": "AI-powered Instagram carousel builder. Chat with Claude to design slides; export as PNGs at exact Instagram dimensions.",
+  "description": "CLI-first Instagram carousel editor. Compose slides from a brief, correct them by hand, optionally use AI. Export PNGs at exact Instagram dimensions.",
   "license": "MIT",
   "private": true,
   "bin": {
@@ -22,7 +22,8 @@
     "lint": "eslint",
     "doctor": "node scripts/doctor.mjs",
     "oc": "node scripts/oc.mjs",
-    "cli": "node scripts/oc.mjs"
+    "cli": "node scripts/oc.mjs",
+    "test": "node --test scripts/lib/*.test.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

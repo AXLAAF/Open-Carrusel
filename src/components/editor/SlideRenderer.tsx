@@ -10,6 +10,7 @@ interface SlideRendererProps {
   aspectRatio: AspectRatio;
   className?: string;
   style?: React.CSSProperties;
+  zoom?: number;
 }
 
 export function SlideRenderer({
@@ -17,6 +18,7 @@ export function SlideRenderer({
   aspectRatio,
   className,
   style,
+  zoom = 1,
 }: SlideRendererProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
@@ -53,7 +55,7 @@ export function SlideRenderer({
 
   // Calculate scale to fit the slide into the container
   const scale = dims
-    ? Math.min(dims.w / slideW, dims.h / slideH)
+    ? Math.min(dims.w / slideW, dims.h / slideH) * Math.max(0.25, zoom)
     : 0;
 
   const scaledW = Math.floor(slideW * scale);

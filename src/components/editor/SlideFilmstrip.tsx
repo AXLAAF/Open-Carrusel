@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2, Undo2, GripVertical, Copy } from "lucide-react";
+import { Trash2, Undo2, GripVertical, Copy } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -17,9 +17,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { SlideRenderer } from "./SlideRenderer";
+import { LayoutPicker } from "./LayoutPicker";
 import type { Slide, AspectRatio } from "@/types/carousel";
 import { DIMENSIONS, MAX_SLIDES } from "@/types/carousel";
 import { cn } from "@/lib/utils";
+import type { LayoutId } from "@/types/layout";
 
 interface SlideFilmstripProps {
   slides: Slide[];
@@ -28,7 +30,7 @@ interface SlideFilmstripProps {
   onActiveChange: (index: number) => void;
   onDeleteSlide?: (slideId: string) => void;
   onUndoSlide?: (slideId: string) => void;
-  onAddSlide?: () => void;
+  onAddSlide?: (layout?: LayoutId) => void;
   onDuplicateSlide?: (slideId: string) => void;
   onReorderSlides?: (slideIds: string[]) => void;
   isGenerating?: boolean;
@@ -252,14 +254,11 @@ export function SlideFilmstrip({
         )}
 
         {slides.length < MAX_SLIDES && !isGenerating && (
-          <button
-            onClick={() => onAddSlide?.()}
-            className="shrink-0 rounded-lg border-2 border-dashed border-border flex items-center justify-center hover:border-muted-foreground/50 hover:bg-muted/50 transition-colors cursor-pointer"
-            style={{ width: thumbWidth, height: thumbHeight }}
-            aria-label="Add blank slide"
-          >
-            <Plus className="h-4 w-4 text-muted-foreground" />
-          </button>
+          <LayoutPicker
+            width={thumbWidth}
+            height={thumbHeight}
+            onPick={(layout) => onAddSlide?.(layout)}
+          />
         )}
       </div>
     </div>

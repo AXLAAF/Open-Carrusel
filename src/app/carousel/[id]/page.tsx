@@ -11,8 +11,11 @@ import { SlideFilmstrip } from "@/components/editor/SlideFilmstrip";
 import { CaptionPanel } from "@/components/editor/CaptionPanel";
 import { FullscreenPreview } from "@/components/editor/FullscreenPreview";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
-import { SlideInspector } from "@/components/editor/SlideInspector";
+import { StudioPanel, type StudioTab } from "@/components/studio/StudioPanel";
+import { useEditorShortcuts } from "@/components/editor/useEditorShortcuts";
 import type { Carousel, AspectRatio } from "@/types/carousel";
+import type { BrandConfig } from "@/types/brand";
+import type { LayoutId } from "@/types/layout";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,11 +46,16 @@ export default function CarouselEditorPage({ params }: PageProps) {
   const [notFound, setNotFound] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [claudeAvailable, setClaudeAvailable] = useState(true);
-  const [chatOpen, setChatOpen] = useState(true);
-  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [studioOpen, setStudioOpen] = useState(true);
+  const [studioTab, setStudioTab] = useState<StudioTab>("design");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [brand, setBrand] = useState<BrandConfig | null>(null);
+  const [draft, setDraft] = useState<{ id: string; html: string } | null>(null);
   const [confirmState, setConfirmState] = useState({
     open: false,
     title: "",
@@ -55,6 +63,9 @@ export default function CarouselEditorPage({ params }: PageProps) {
     onConfirm: () => {},
   });
   const chatInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const saveTimer = useRef<number | null>(null);
+  const redoStack = useRef<string[]>([]);
+  const dirtyRef = useRef(false);
 
   const fetchCarousel = useCallback(async () => {
     try {
@@ -88,11 +99,14 @@ export default function CarouselEditorPage({ params }: PageProps) {
     const load = async () => {
       await fetchCarousel();
       try {
-        const res = await fetch("/api/chat/check");
-        const data: { available?: boolean } = await res.json();
-        if (data.available === false) setClaudeAvailable(false);
+        const [chat, brandRes] = await Promise.all([
+          fetch("/api/chat/check").then((r) => r.json()),
+          fetch("/api/brand").then((r) => r.json()),
+        ]);
+        if (chat.available === false) setClaudeAvailable(false);
+        setBrand(brandRes);
       } catch {
-        // assume available
+        setClaudeAvailable(false);
       }
     };
     load();
@@ -100,7 +114,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
 
   useEffect(() => {
     const tick = () => {
-      if (document.hidden) return;
+      if (document.hidden || dirtyRef.current) return;
       fetchCarousel();
     };
     const ms = isGenerating ? 500 : 2000;
@@ -108,30 +122,38 @@ export default function CarouselEditorPage({ params }: PageProps) {
     return () => clearInterval(interval);
   }, [isGenerating, fetchCarousel]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "TEXTAREA" || tag === "INPUT") return;
-      if (!carousel) return;
-      if (e.key === "ArrowLeft") {
-        setActiveSlide((i) => Math.max(0, i - 1));
-      } else if (e.key === "ArrowRight") {
-        setActiveSlide((i) => Math.min(carousel.slides.length - 1, i + 1));
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [carousel]);
+  const current = carousel?.slides[activeSlide] ?? null;
+  const draftHtml =
+    current && draft?.id === current.id ? draft.html : (current?.html ?? "");
 
-  const handleAspectChange = async (ratio: AspectRatio) => {
-    if (!carousel) return;
-    const res = await fetch(`/api/carousels/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aspectRatio: ratio }),
-    });
-    if (res.ok) setCarousel(await res.json());
-  };
+  const persistHtml = useCallback(
+    async (html: string) => {
+      if (!current) return;
+      dirtyRef.current = true;
+      await fetch(`/api/carousels/${id}/slides/${current.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html }),
+      });
+      dirtyRef.current = false;
+      redoStack.current = [];
+      await fetchCarousel();
+    },
+    [current, id, fetchCarousel]
+  );
+
+  const handleHtmlChange = useCallback(
+    (html: string) => {
+      if (!current) return;
+      setDraft({ id: current.id, html });
+      dirtyRef.current = true;
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      saveTimer.current = window.setTimeout(() => {
+        void persistHtml(html);
+      }, 450);
+    },
+    [current, persistHtml]
+  );
 
   const handleDeleteSlide = (slideId: string) => {
     if (!carousel) return;
@@ -150,21 +172,31 @@ export default function CarouselEditorPage({ params }: PageProps) {
   };
 
   const handleUndoSlide = async (slideId: string) => {
+    if (current && current.id === slideId) {
+      redoStack.current.push(current.html);
+    }
     const res = await fetch(`/api/carousels/${id}/slides/${slideId}/undo`, {
       method: "POST",
     });
     if (res.ok) await fetchCarousel();
   };
 
-  const handleAddSlide = async () => {
+  const handleRedo = async () => {
+    const html = redoStack.current.pop();
+    if (!html || !current) return;
+    await persistHtml(html);
+  };
+
+  const handleAddSlide = async (layout: LayoutId = "value") => {
     const res = await fetch(`/api/carousels/${id}/slides`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ blank: true, notes: "blank" }),
+      body: JSON.stringify({ layout, notes: layout }),
     });
     if (res.ok) {
       await fetchCarousel();
-      setInspectorOpen(true);
+      setStudioOpen(true);
+      setStudioTab("design");
     }
   };
 
@@ -200,6 +232,52 @@ export default function CarouselEditorPage({ params }: PageProps) {
     [id, fetchCarousel]
   );
 
+  const handleAspectChange = async (ratio: AspectRatio) => {
+    if (!carousel) return;
+    const res = await fetch(`/api/carousels/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aspectRatio: ratio }),
+    });
+    if (res.ok) setCarousel(await res.json());
+  };
+
+  const handleRestyle = async () => {
+    if (!current) return;
+    const res = await fetch(`/api/carousels/${id}/slides/${current.id}/restyle`, {
+      method: "POST",
+    });
+    if (res.ok) await fetchCarousel();
+  };
+
+  useEditorShortcuts({
+    carousel,
+    current,
+    onPrev: () => setActiveSlide((i) => Math.max(0, i - 1)),
+    onNext: () =>
+      setActiveSlide((i) => Math.min((carousel?.slides.length ?? 1) - 1, i + 1)),
+    onDelete: handleDeleteSlide,
+    onDuplicate: (slideId) => {
+      void handleDuplicateSlide(slideId);
+    },
+    onUndo: (slideId) => {
+      void handleUndoSlide(slideId);
+    },
+    onRedo: () => {
+      void handleRedo();
+    },
+    onFit: () => {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+    },
+    onActual: () => {
+      setZoom(2);
+      setPan({ x: 0, y: 0 });
+    },
+    onZoomIn: () => setZoom((z) => Math.min(4, Math.round((z + 0.1) * 10) / 10)),
+    onZoomOut: () => setZoom((z) => Math.max(0.25, Math.round((z - 0.1) * 10) / 10)),
+  });
+
   if (notFound) {
     return (
       <div className="h-full flex flex-col items-center justify-center gap-4">
@@ -219,7 +297,10 @@ export default function CarouselEditorPage({ params }: PageProps) {
     );
   }
 
-  const current = carousel.slides[activeSlide] ?? null;
+  const liveSlide = current ? { ...current, html: draftHtml || current.html } : null;
+  const previewSlides = liveSlide
+    ? carousel.slides.map((s, i) => (i === activeSlide ? liveSlide : s))
+    : carousel.slides;
 
   return (
     <div className="h-full flex flex-col">
@@ -240,7 +321,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
       <FullscreenPreview
         open={showFullscreen}
         onOpenChange={setShowFullscreen}
-        slides={carousel.slides}
+        slides={previewSlides}
         aspectRatio={carousel.aspectRatio}
         activeIndex={activeSlide}
         onActiveChange={setActiveSlide}
@@ -290,18 +371,29 @@ export default function CarouselEditorPage({ params }: PageProps) {
             onDeleteCarousel={handleDeleteCarousel}
             chatOpen={chatOpen}
             onToggleChat={() => setChatOpen((v) => !v)}
-            inspectorOpen={inspectorOpen}
-            onToggleInspector={() => setInspectorOpen((v) => !v)}
+            studioOpen={studioOpen}
+            onToggleStudio={() => setStudioOpen((v) => !v)}
             carouselId={carousel.id}
             slideCount={carousel.slides.length}
+            activeSlideId={current?.id}
+            zoom={zoom}
+            onZoomChange={setZoom}
+            onFit={() => {
+              setZoom(1);
+              setPan({ x: 0, y: 0 });
+            }}
           />
 
           <CarouselPreview
-            slides={carousel.slides}
+            slides={previewSlides}
             aspectRatio={carousel.aspectRatio}
             activeIndex={activeSlide}
             onActiveChange={setActiveSlide}
             showSafeZones={showSafeZones}
+            zoom={zoom}
+            onZoomChange={setZoom}
+            pan={pan}
+            onPanChange={setPan}
           />
 
           <CaptionPanel
@@ -312,20 +404,33 @@ export default function CarouselEditorPage({ params }: PageProps) {
           />
         </div>
 
-        {inspectorOpen && (
-          <div className="oc-fade w-[380px] border-l border-border shrink-0 flex flex-col bg-surface min-h-0">
-            <SlideInspector
-              carouselId={id}
-              slide={current}
+        {studioOpen && (
+          <div className="oc-fade w-[400px] border-l border-border shrink-0 flex flex-col bg-surface min-h-0">
+            <StudioPanel
+              tab={studioTab}
+              onTabChange={setStudioTab}
+              carousel={carousel}
+              slide={liveSlide}
               slideIndex={activeSlide}
+              html={draftHtml || current?.html || ""}
+              brand={brand}
+              onHtmlChange={handleHtmlChange}
               onSaved={fetchCarousel}
+              onBrandSaved={setBrand}
+              onRestyle={handleRestyle}
+              onRestore={(html) => {
+                void persistHtml(html);
+              }}
+              onFullscreen={() => setShowFullscreen(true)}
+              showSafeZones={showSafeZones}
+              onToggleSafeZones={() => setShowSafeZones((v) => !v)}
             />
           </div>
         )}
       </div>
 
       <SlideFilmstrip
-        slides={carousel.slides}
+        slides={previewSlides}
         aspectRatio={carousel.aspectRatio}
         activeIndex={activeSlide}
         onActiveChange={setActiveSlide}
