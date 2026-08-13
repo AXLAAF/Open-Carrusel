@@ -21,9 +21,30 @@ export interface ExportOptions {
 // Singleton browser with lifecycle management
 let browser: Browser | null = null;
 let exportCount = 0;
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
 const MAX_EXPORTS_BEFORE_RESTART = 50;
+const IDLE_CLOSE_MS = 30_000;
+
+function clearIdleTimer() {
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+  }
+}
+
+function scheduleIdleClose() {
+  clearIdleTimer();
+  idleTimer = setTimeout(() => {
+    const current = browser;
+    browser = null;
+    exportCount = 0;
+    idleTimer = null;
+    current?.close().catch(() => {});
+  }, IDLE_CLOSE_MS);
+}
 
 async function getBrowser(): Promise<Browser> {
+  clearIdleTimer();
   if (browser && exportCount >= MAX_EXPORTS_BEFORE_RESTART) {
     await browser.close().catch(() => {});
     browser = null;
@@ -126,6 +147,7 @@ export async function exportSlide(
     return encodeExport(screenshotBuffer, { format: "png", quality: 100 });
   } finally {
     await page.close().catch(() => {});
+    scheduleIdleClose();
   }
 }
 

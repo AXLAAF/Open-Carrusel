@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Trash2, Undo2, GripVertical, Copy } from "lucide-react";
 import {
   DndContext,
@@ -67,6 +68,26 @@ function SortableSlideThumb({
     transition,
     isDragging,
   } = useSortable({ id: slide.id });
+  const nodeRef = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  const setRefs = (node: HTMLDivElement | null) => {
+    setNodeRef(node);
+    nodeRef.current = node;
+  };
+
+  useEffect(() => {
+    const el = nodeRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) setVisible(entry.isIntersecting);
+      },
+      { rootMargin: "120px", threshold: 0.01 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -77,7 +98,7 @@ function SortableSlideThumb({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={setRefs}
       style={style}
       className={cn("oc-enter-pop relative group shrink-0", isDragging && "!opacity-50")}
     >
@@ -101,11 +122,15 @@ function SortableSlideThumb({
         style={{ width: thumbWidth, height: thumbHeight }}
         aria-label={`Select slide ${index + 1}`}
       >
-        <SlideRenderer
-          html={slide.html}
-          aspectRatio={aspectRatio}
-          className="w-full h-full"
-        />
+        {visible ? (
+          <SlideRenderer
+            html={slide.html}
+            aspectRatio={aspectRatio}
+            className="w-full h-full"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted" />
+        )}
       </button>
 
       {/* Hover actions */}

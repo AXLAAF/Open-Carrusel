@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { isClaudeAvailable } from "@/lib/claude-path";
+import { isCursorAvailable } from "@/lib/cursor-auth";
 
 export async function GET() {
-  return NextResponse.json({ available: isClaudeAvailable() });
+  return NextResponse.json({ available: isCursorAvailable() });
 }

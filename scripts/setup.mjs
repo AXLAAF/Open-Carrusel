@@ -2,11 +2,11 @@
 // Cross-platform setup for Open Carrusel. Runs on macOS, Linux, and Windows.
 
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import crossSpawn from "cross-spawn";
 
 const ROOT = process.cwd();
+const ENV_PATH = path.join(ROOT, ".env.local");
 
 function log(msg) {
   process.stdout.write(msg + "\n");
@@ -19,59 +19,42 @@ function runSync(cmd, args, opts = {}) {
   }
 }
 
-function tryProbeClaude() {
-  const isWin = process.platform === "win32";
-  const cmd = isWin ? "where" : "which";
+function readEnvFile(filePath) {
   try {
-    const r = crossSpawn.sync(cmd, ["claude"], {
-      encoding: "utf-8",
-      timeout: 2000,
-    });
-    if (r.status === 0 && r.stdout) {
-      const first = r.stdout.split(/\r?\n/).find((l) => l.trim());
-      if (first && fs.existsSync(first.trim())) return first.trim();
-    }
+    return fs.readFileSync(filePath, "utf-8");
   } catch {
-    // ignore
+    return "";
   }
-  return null;
 }
 
-function findClaudePath() {
-  if (
-    process.env.CLAUDE_CLI_PATH &&
-    fs.existsSync(process.env.CLAUDE_CLI_PATH)
-  ) {
-    return process.env.CLAUDE_CLI_PATH;
-  }
+function parseEnvValue(contents, name) {
+  const match = contents.match(new RegExp(`^${name}=(.*)$`, "m"));
+  return match?.[1]?.trim().replace(/^["']|["']$/g, "") || "";
+}
 
-  const home = os.homedir();
-  const candidates = [];
+function ensureCursorEnv() {
+  const existing = readEnvFile(ENV_PATH);
+  const envKey = process.env.CURSOR_API_KEY?.trim() || "";
+  const fileKey = parseEnvValue(existing, "CURSOR_API_KEY");
+  const key = envKey || fileKey;
 
-  if (process.platform === "win32") {
-    const appData =
-      process.env.APPDATA ?? path.join(home, "AppData", "Roaming");
-    const localAppData =
-      process.env.LOCALAPPDATA ?? path.join(home, "AppData", "Local");
-    candidates.push(
-      path.join(appData, "npm", "claude.cmd"),
-      path.join(appData, "npm", "claude.exe"),
-      path.join(localAppData, "Programs", "claude", "claude.exe")
-    );
-  } else {
-    candidates.push(
-      path.join(home, ".local/bin/claude"),
-      "/usr/local/bin/claude",
-      "/opt/homebrew/bin/claude",
-      path.join(home, ".npm-global/bin/claude")
+  let lines = existing
+    .split(/\r?\n/)
+    .filter((line) => line.trim() !== "" || existing.length === 0);
+
+  const hasKeyLine = lines.some((line) => line.startsWith("CURSOR_API_KEY="));
+  if (!hasKeyLine) {
+    if (lines.length > 0 && lines[lines.length - 1] !== "") lines.push("");
+    lines.push("# Get a key at https://cursor.com/dashboard/integrations");
+    lines.push(`CURSOR_API_KEY=${key}`);
+  } else if (envKey) {
+    lines = lines.map((line) =>
+      line.startsWith("CURSOR_API_KEY=") ? `CURSOR_API_KEY=${envKey}` : line
     );
   }
 
-  for (const c of candidates) {
-    if (fs.existsSync(c)) return c;
-  }
-
-  return tryProbeClaude();
+  fs.writeFileSync(ENV_PATH, lines.join("\n").replace(/\n*$/, "\n"), "utf-8");
+  return Boolean(key);
 }
 
 function seedDataFiles() {
@@ -116,67 +99,41 @@ function seedDataFiles() {
   }
 }
 
-function writeEnvLocal(claudePath) {
-  const envPath = path.join(ROOT, ".env.local");
-  let existing = "";
-  try {
-    existing = fs.readFileSync(envPath, "utf-8");
-  } catch {
-    // file doesn't exist yet
-  }
-
-  const lines = existing
-    .split(/\r?\n/)
-    .filter((line) => !line.startsWith("CLAUDE_CLI_PATH="));
-
-  lines.push(`CLAUDE_CLI_PATH=${claudePath}`);
-
-  while (lines.length > 1 && lines[lines.length - 1] === "") lines.pop();
-
-  fs.writeFileSync(envPath, lines.join("\n") + "\n", "utf-8");
-}
-
 async function main() {
-  log("🎠 Setting up Open Carrusel...");
+  log("Setting up Open Carrusel...");
   log("");
 
   log(
-    "📦 Installing dependencies (this may take a moment — Puppeteer downloads Chromium ~300MB)..."
+    "Installing dependencies (first run may download Chromium ~300MB for PNG export)..."
   );
-  runSync("npm", ["install"]);
+  runSync("pnpm", ["install"]);
   log("");
 
-  log("📁 Creating data directories...");
+  log("Creating data directories...");
   seedDataFiles();
   log("");
 
-  log("🔍 Looking for Claude CLI...");
-  const claudePath = findClaudePath();
-  if (claudePath) {
-    log(`  ✅ Found Claude CLI at: ${claudePath}`);
-    writeEnvLocal(claudePath);
+  log("Checking Cursor API key...");
+  const hasKey = ensureCursorEnv();
+  if (hasKey) {
+    log("  Found CURSOR_API_KEY in environment or .env.local");
   } else {
-    log("  ⚠️  Claude CLI not found.");
-    log("  The app will run without AI features.");
-    log(
-      "  To enable AI: install Claude CLI from https://docs.anthropic.com/en/docs/claude-code"
-    );
-    log("  Then set CLAUDE_CLI_PATH in .env.local");
-    if (process.platform === "win32") {
-      log("  On Windows, run `where claude` to find the path (likely ...\\npm\\claude.cmd).");
-    }
+    log("  CURSOR_API_KEY is empty.");
+    log("  In-app chat needs a key from https://cursor.com/dashboard/integrations");
+    log("  Set CURSOR_API_KEY in .env.local, then restart the dev server.");
+    log("  The editor and `pnpm oc` still work without it.");
   }
   log("");
 
   if (process.env.OC_SETUP_NO_DEV) {
-    log("✅ Setup complete. (Dev server start skipped — caller will handle it.)");
+    log("Setup complete. (Dev server start skipped — caller will handle it.)");
     return;
   }
 
-  log("🚀 Starting Open Carrusel...");
+  log("Starting Open Carrusel...");
   log("  Open http://localhost:3000 in your browser");
   log("");
-  runSync("npm", ["run", "dev"]);
+  runSync("pnpm", ["dev"]);
 }
 
 main().catch((err) => {

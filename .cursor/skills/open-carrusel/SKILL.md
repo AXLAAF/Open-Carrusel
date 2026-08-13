@@ -7,22 +7,24 @@ description: Creates and edits Instagram carousels in OpenCarrusel via the oc CL
 
 CLI-first Instagram carousel editor. The app at `http://localhost:3000` is a **manual editor** (text, type, layers, brand, export). AI is optional. Slides are body-level HTML.
 
+Before designing, follow `.cursor/skills/sn-ppt-standard/SKILL.md` so slides do not look AI-generated: one idea per slide, editable HTML, sober type/color, no cliché copy.
+
 ## How to make a carousel (do this; do not wait for chat)
 
-1. Confirm the app is running (`npm run dev` → localhost:3000). If not, start it.
-2. Set brand once: `npm run oc -- brand set --name "Marca" --accent "#e94560" --heading Inter --body Inter`
+1. Confirm the app is running (`pnpm dev` → localhost:3000). If not, start it.
+2. Set brand once: `pnpm oc -- brand set --name "Marca" --accent "#e94560" --heading Borscha --body Rostex`
 3. Compose the whole carousel from a brief (no AI):
 
 ```bash
-npm run oc -- compose --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto" --ratio 4:5
+pnpm oc -- compose --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto" --ratio 4:5
 # or
-npm run oc -- compose examples/carousel-brief.json
+pnpm oc -- compose examples/carousel-brief.json
 ```
 
 4. Open the printed editor URL. Correct copy, type, padding, and layers **by hand**.
-5. Export: `npm run oc -- export <id> --format png`
+5. Export: `pnpm oc -- export <id> --format png`
 
-The preview polls every 2s. Do not restart the app after HTML edits.
+The preview polls. Do not restart the app after HTML edits.
 
 ## Narrative (default 5–8 slides)
 
@@ -33,28 +35,28 @@ The preview polls every 2s. Do not restart the app after HTML edits.
 5. CTA (always last)
 
 Layouts: `hook` `setup` `value` `list` `quote` `stat` `summary` `cta`  
-(`npm run oc -- layouts`)
+(`pnpm oc -- layouts`)
 
 ## CLI
 
 ```bash
-npm run oc -- list
-npm run oc -- compose --name "..." --topic "..." --points "a|b|c" --cta "Guarda"
-npm run oc -- slide add <id> --layout hook --title "..." --body "..." --kicker "CARRUSEL"
-npm run oc -- slide add <id> --layout list --title "..." --items "Uno|Dos|Tres"
-npm run oc -- slide restyle <id> <slideId> --layout value
-npm run oc -- caption <id> --text "..." --hashtags tag1,tag2
-npm run oc -- brand apply <id>
-npm run oc -- templates save <id> --name "..."
-npm run oc -- templates use <templateId>
-npm run oc -- presets apply <presetId> --carousel <id>
-npm run oc -- upload ./image.png
-npm run oc -- export <id> --slide <slideId> --format jpg --quality 90 --out slide.jpg
-npm run oc -- doctor
-npm run oc -- help
+pnpm oc -- list
+pnpm oc -- compose --name "..." --topic "..." --points "a|b|c" --cta "Guarda"
+pnpm oc -- slide add <id> --layout hook --title "..." --body "..." --kicker "CARRUSEL"
+pnpm oc -- slide add <id> --layout list --title "..." --items "Uno|Dos|Tres"
+pnpm oc -- slide restyle <id> <slideId> --layout value
+pnpm oc -- caption <id> --text "..." --hashtags tag1,tag2
+pnpm oc -- brand apply <id>
+pnpm oc -- templates save <id> --name "..."
+pnpm oc -- templates use <templateId>
+pnpm oc -- presets apply <presetId> --carousel <id>
+pnpm oc -- upload ./image.png
+pnpm oc -- export <id> --slide <slideId> --format jpg --quality 90 --out slide.jpg
+pnpm oc -- doctor
+pnpm oc -- help
 ```
 
-`--json` for machine-readable output. `--html-file -` reads stdin. `--file` writes `data/` if the server is down.
+`--json` for machine-readable output. `--html-file -` reads stdin. `--file` writes `data/` if the server is down. `npm run oc` still works.
 
 ## HTML files (manual + Cursor)
 
@@ -68,13 +70,17 @@ Body-level HTML only. Prefer layouts with:
 
 The editor reads those attributes for text, type, padding, and layers. You can still edit the file directly.
 
+Numbered dump (optional): `pnpm oc -- dump <id>` then `pnpm oc -- apply <id>`.
+
 ## Slide HTML rules
 
 - No `<html>`, `<head>`, `<!DOCTYPE>`, `<script>`.
 - Dimensions: 1:1 = 1080×1080, 4:5 = 1080×1350, 9:16 = 1080×1920.
 - Local fonts: `"Borscha"`, `"BorschaBold"`, `"Rostex"`, `"RostexRegular"`.
-- Images: `/uploads/{filename}` (`npm run oc -- upload`).
+- Images: `/uploads/{filename}` (`pnpm oc -- upload`).
 - Padding ≥ 80px. Max ~8 words on the hook. Contrast > 4.5:1.
+- Prefer `Borscha` / `Rostex` over Inter, Poppins, Montserrat.
+- Real text nodes. No stock photos, mesh gradients, or cloned icon-card grids.
 
 ## Editor (hand corrections)
 
@@ -82,11 +88,14 @@ Right rail: Diseño · Capas · Marca · Medios · Historial · Publicar · HTML
 
 Shortcuts: ← → slides, ⌘D duplicate, Delete, ⌘Z undo, ⌘⇧Z redo, ⌘0 fit, ⌘+/- zoom, space-drag pan.
 
-Do not depend on in-app Claude. Chat is optional. Prefer `npm run oc` and the visual editor.
+Do not depend on in-app chat. Prefer `pnpm oc` and the visual editor. Chat uses Cursor SDK when `CURSOR_API_KEY` is set.
+
+Read brand from `pnpm oc -- brand` and stay on-palette. Copy: casual, direct, no AI clichés (see sn-ppt-standard).
 
 ## Do not
 
-- Do not spawn Claude CLI unless the user asks for the in-app chat.
+- Do not spawn Claude CLI unless the user asks for it.
 - Do not put full HTML documents in slide files.
 - Do not exceed 20 slides.
 - Do not skip the CTA on the last slide.
+- Do not use AI-slop layout or copy. Follow sn-ppt-standard.

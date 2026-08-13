@@ -45,7 +45,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
   const [carousel, setCarousel] = useState<Carousel | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [claudeAvailable, setClaudeAvailable] = useState(true);
+  const [cursorAvailable, setCursorAvailable] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [studioOpen, setStudioOpen] = useState(true);
   const [studioTab, setStudioTab] = useState<StudioTab>("design");
@@ -66,15 +66,21 @@ export default function CarouselEditorPage({ params }: PageProps) {
   const saveTimer = useRef<number | null>(null);
   const redoStack = useRef<string[]>([]);
   const dirtyRef = useRef(false);
+  const etagRef = useRef<string | null>(null);
 
   const fetchCarousel = useCallback(async () => {
     try {
-      const res = await fetch(`/api/carousels/${id}`);
+      const headers: HeadersInit = {};
+      if (etagRef.current) headers["If-None-Match"] = etagRef.current;
+      const res = await fetch(`/api/carousels/${id}`, { headers });
       if (res.status === 404) {
         setNotFound(true);
         return;
       }
+      if (res.status === 304) return;
       if (res.ok) {
+        const nextEtag = res.headers.get("ETag");
+        if (nextEtag) etagRef.current = nextEtag;
         const data: Carousel = await res.json();
         setCarousel((prev) => {
           if (prev && carouselUnchanged(prev, data)) return prev;
@@ -103,10 +109,10 @@ export default function CarouselEditorPage({ params }: PageProps) {
           fetch("/api/chat/check").then((r) => r.json()),
           fetch("/api/brand").then((r) => r.json()),
         ]);
-        if (chat.available === false) setClaudeAvailable(false);
+        if (chat.available === false) setCursorAvailable(false);
         setBrand(brandRes);
       } catch {
-        setClaudeAvailable(false);
+        setCursorAvailable(false);
       }
     };
     load();
@@ -117,7 +123,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
       if (document.hidden || dirtyRef.current) return;
       fetchCarousel();
     };
-    const ms = isGenerating ? 500 : 2000;
+    const ms = isGenerating ? 1000 : 3000;
     const interval = setInterval(tick, ms);
     return () => clearInterval(interval);
   }, [isGenerating, fetchCarousel]);
@@ -342,7 +348,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
           <div className="oc-fade w-80 border-r border-border shrink-0 flex flex-col bg-surface">
             <ChatPanel
               carouselId={id}
-              claudeAvailable={claudeAvailable}
+              cursorAvailable={cursorAvailable}
               referenceImages={carousel.referenceImages || []}
               onStreamStart={() => setIsGenerating(true)}
               onStreamEnd={() => {

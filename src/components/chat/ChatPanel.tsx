@@ -17,7 +17,7 @@ interface Message {
 interface ChatPanelProps {
   carouselId: string;
   referenceImages?: ReferenceImage[];
-  claudeAvailable: boolean;
+  cursorAvailable: boolean;
   onStreamStart?: () => void;
   onStreamEnd?: () => void;
   chatInputRef?: React.RefObject<HTMLTextAreaElement | null>;
@@ -25,7 +25,7 @@ interface ChatPanelProps {
 
 export function ChatPanel({
   carouselId,
-  claudeAvailable,
+  cursorAvailable,
   referenceImages = [],
   onStreamStart,
   onStreamEnd,
@@ -229,13 +229,13 @@ export function ChatPanel({
     [isStreaming, sessionId, carouselId, onStreamStart, onStreamEnd, persistMessages]
   );
 
-  if (!claudeAvailable) {
+  if (!cursorAvailable) {
     return (
       <div className="h-full flex flex-col">
         <div className="px-4 py-3 border-b border-border">
-          <h2 className="text-sm font-semibold">Agente</h2>
+          <h2 className="text-sm font-semibold">Cursor</h2>
           <p className="text-xs text-muted-foreground">
-            Cursor o CLI — Claude CLI opcional
+            Falta <span className="font-mono">CURSOR_API_KEY</span>
           </p>
         </div>
         <ReferenceImages
@@ -247,16 +247,19 @@ export function ChatPanel({
           <AgentGuide carouselId={carouselId} />
           <div className="px-5 pb-5">
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              También puedes instalar{" "}
+              Para el chat embebido, crea una API key en{" "}
               <a
-                href="https://docs.anthropic.com/en/docs/claude-code"
+                href="https://cursor.com/dashboard/integrations"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-accent underline"
               >
-                Claude CLI
-              </a>{" "}
-              para el chat embebido. El editor funciona igual sin él.
+                Cursor Dashboard → Integrations
+              </a>
+              , ponla en <span className="font-mono">.env.local</span> como{" "}
+              <span className="font-mono">CURSOR_API_KEY=...</span> y reinicia{" "}
+              <span className="font-mono">pnpm dev</span>. El editor sigue
+              funcionando sin ella.
             </p>
           </div>
         </div>
@@ -268,9 +271,9 @@ export function ChatPanel({
     <div className="h-full flex flex-col">
       <div className="px-4 py-3 border-b border-border flex items-start justify-between">
         <div>
-          <h2 className="text-sm font-semibold">AI Assistant</h2>
+          <h2 className="text-sm font-semibold">Cursor</h2>
           <p className="text-xs text-muted-foreground">
-            Chat, Cursor o <span className="font-mono">npm run oc</span>
+            Chat embebido o <span className="font-mono">pnpm oc</span>
           </p>
         </div>
         {messages.length > 0 && (

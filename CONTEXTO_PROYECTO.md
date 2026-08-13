@@ -15,13 +15,13 @@
 - **Framework**: Next.js 16.2 (App Router) + React 19 + TypeScript.
 - **Estilos**: Tailwind CSS v4 + PostCSS.
 - **Lienzo**: diapositivas como HTML/CSS. `wrapSlideHtml()` en `src/lib/slide-html.ts` arma el documento, fuentes locales (`/fonts/local.css`) y Google Fonts.
-- **Preview**: `SlideRenderer` en iframes `sandbox=""`. El editor hace polling cada 2s.
+- **Preview**: `SlideRenderer` en iframes `sandbox=""`. El editor hace polling cada 3s (1s mientras genera) con ETag.
 - **Editor**: tira de diapositivas (dnd-kit), panel HTML, caption editable, duplicar / añadir en blanco.
-- **CLI**: `npm run oc -- <comando>` (`scripts/oc.mjs`). Es la interfaz para Cursor y cualquier agente.
+- **CLI**: `pnpm oc -- <comando>` (`scripts/oc.mjs`). Es la interfaz para Cursor y cualquier agente.
 - **Archivos de slide**: `data/slides/{carouselId}/{slideId}.html` — Cursor puede escribirlos directo.
 - **Exportación**: Puppeteer → PNG ZIP.
 - **Storage JSON**: `data/` con `async-mutex` y escrituras atómicas.
-- **Chat embebido**: Claude CLI vía SSE en `/api/chat` (opcional; no es requisito).
+- **Chat embebido**: Cursor SDK vía SSE en `/api/chat` (`CURSOR_API_KEY` en `.env.local`).
 
 ---
 
@@ -37,12 +37,12 @@
 ## 4. CLI rápido
 
 ```bash
-npm run oc -- list
-npm run oc -- create "Nombre" --ratio 4:5
-npm run oc -- slide add <id> --blank
-npm run oc -- slide update <id> <slideId> --html-file ./slide.html
-npm run oc -- export <id>
-npm run oc -- help
+pnpm oc -- list
+pnpm oc -- create "Nombre" --ratio 4:5
+pnpm oc -- slide add <id> --blank
+pnpm oc -- slide update <id> <slideId> --html-file ./slide.html
+pnpm oc -- export <id>
+pnpm oc -- help
 ```
 
 Skill de Cursor: `.cursor/skills/open-carrusel/SKILL.md`
@@ -53,10 +53,10 @@ Skill de Cursor: `.cursor/skills/open-carrusel/SKILL.md`
 
 ```bash
 cd /home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/OpenCarrusel
-npm run dev      # webpack, http://localhost:3000
-npm run oc -- help
-npm run build
-npm run start
+pnpm dev         # turbopack, http://localhost:3000
+pnpm oc -- help
+pnpm build
+pnpm start
 ```
 
 ---

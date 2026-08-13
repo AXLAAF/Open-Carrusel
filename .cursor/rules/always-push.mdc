@@ -1,0 +1,10 @@
+---
+description: After every successful git commit, push to origin. Do not wait to be asked.
+alwaysApply: true
+---
+
+# Always push
+
+After a successful `git commit` in this repo, run `git push` (or `git push -u origin HEAD` if the branch has no upstream).
+
+Do not wait for the user to ask. Do not force-push to main/master.
