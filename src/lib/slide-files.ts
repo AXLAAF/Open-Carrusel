@@ -1,4 +1,4 @@
-import { readFile, writeFile, rename, mkdir, rm } from "fs/promises";
+import { readFile, writeFile, rename, mkdir, rm, stat } from "fs/promises";
 import path from "path";
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
@@ -7,7 +7,15 @@ export function slideHtmlRelPath(carouselId: string, slideId: string): string {
   return path.join("slides", carouselId, `${slideId}.html`);
 }
 
+function assertSafeId(id: string): void {
+  if (!id || id.includes("..") || id.includes("/") || id.includes("\\")) {
+    throw new Error("Invalid id");
+  }
+}
+
 export function slideHtmlAbsPath(carouselId: string, slideId: string): string {
+  assertSafeId(carouselId);
+  assertSafeId(slideId);
   return path.join(DATA_DIR, "slides", carouselId, `${slideId}.html`);
 }
 
@@ -44,10 +52,23 @@ export async function deleteSlideHtml(
 export async function deleteCarouselSlideFiles(
   carouselId: string
 ): Promise<void> {
+  assertSafeId(carouselId);
   await rm(path.join(DATA_DIR, "slides", carouselId), {
     recursive: true,
     force: true,
   });
+}
+
+export async function slideHtmlMtime(
+  carouselId: string,
+  slideId: string
+): Promise<number> {
+  try {
+    const st = await stat(slideHtmlAbsPath(carouselId, slideId));
+    return st.mtimeMs;
+  } catch {
+    return 0;
+  }
 }
 
 export async function hydrateSlideHtml<

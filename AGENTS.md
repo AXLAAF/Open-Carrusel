@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # OpenCarrusel
 
-Instagram carousel editor. For slide design, follow `.cursor/skills/open-carrusel/SKILL.md` and use `npm run oc -- help`.
+Instagram carousel editor. For slide design, follow `.cursor/skills/open-carrusel/SKILL.md` and `.cursor/skills/sn-ppt-standard/SKILL.md`. Use `pnpm oc -- help`.
 Slide HTML lives at `data/slides/<carouselId>/<slideId>.html`.
 
 <!-- END:nextjs-agent-rules -->

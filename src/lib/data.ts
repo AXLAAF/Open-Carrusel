@@ -5,6 +5,18 @@ import { Mutex } from "async-mutex";
 const DATA_DIR = path.resolve(process.cwd(), "data");
 const mutexes = new Map<string, Mutex>();
 
+function resolveDataFile(filename: string): string {
+  if (
+    !filename ||
+    filename.includes("..") ||
+    filename.includes("/") ||
+    filename.includes("\\")
+  ) {
+    throw new Error("Invalid data filename");
+  }
+  return path.join(DATA_DIR, filename);
+}
+
 function getMutex(filename: string): Mutex {
   let mutex = mutexes.get(filename);
   if (!mutex) {
@@ -19,7 +31,7 @@ export async function ensureDataDir(): Promise<void> {
 }
 
 export async function readData<T>(filename: string): Promise<T> {
-  const filePath = path.join(DATA_DIR, filename);
+  const filePath = resolveDataFile(filename);
   try {
     const raw = await readFile(filePath, "utf-8");
     return JSON.parse(raw) as T;
@@ -38,7 +50,7 @@ export async function writeData<T>(filename: string, data: T): Promise<void> {
   const mutex = getMutex(filename);
   await mutex.runExclusive(async () => {
     await ensureDataDir();
-    const filePath = path.join(DATA_DIR, filename);
+    const filePath = resolveDataFile(filename);
     const tmpPath = filePath + ".tmp";
     await writeFile(tmpPath, JSON.stringify(data, null, 2), "utf-8");
     await rename(tmpPath, filePath);

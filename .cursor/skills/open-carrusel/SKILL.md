@@ -7,26 +7,28 @@ description: Creates and edits Instagram carousels in OpenCarrusel via the oc CL
 
 Instagram carousel editor. Slides are body-level HTML. Preview: `http://localhost:3000`.
 
+Before designing, follow `.cursor/skills/sn-ppt-standard/SKILL.md` so slides do not look AI-generated: one idea per slide, editable HTML, sober type/color, no cliché copy.
+
 ## Workflow
 
-1. Confirm the app is running (`npm run dev` → localhost:3000). If not, start it.
-2. Identify the carousel: `npm run oc -- list` or the URL `/carousel/<id>`.
-3. Create or edit slides (CLI or HTML files). The editor polls every 2s — do not restart the app.
+1. Confirm the app is running (`pnpm dev` → localhost:3000). If not, start it.
+2. Identify the carousel: `pnpm oc -- list` or the URL `/carousel/<id>`.
+3. Create or edit slides (CLI or HTML files). The editor polls — do not restart the app.
 4. Keep copy short. One idea per slide. Last slide is always a CTA.
 
 ## CLI
 
 ```bash
-npm run oc -- list
-npm run oc -- create "Nombre" --ratio 4:5
-npm run oc -- get <id>
-npm run oc -- slide add <id> --blank --notes "hook"
-npm run oc -- slide add <id> --html-file ./slide.html --notes "value"
-npm run oc -- slide update <id> <slideId> --html-file ./slide.html
-npm run oc -- slides <id>
-npm run oc -- caption <id> --text "..." --hashtags tag1,tag2
-npm run oc -- export <id>
-npm run oc -- help
+pnpm oc -- list
+pnpm oc -- create "Nombre" --ratio 4:5
+pnpm oc -- get <id>
+pnpm oc -- slide add <id> --blank --notes "hook"
+pnpm oc -- slide add <id> --html-file ./slide.html --notes "value"
+pnpm oc -- slide update <id> <slideId> --html-file ./slide.html
+pnpm oc -- slides <id>
+pnpm oc -- caption <id> --text "..." --hashtags tag1,tag2
+pnpm oc -- export <id>
+pnpm oc -- help
 ```
 
 `--json` for machine-readable output. `--html-file -` reads stdin.
@@ -39,7 +41,7 @@ After a slide exists:
 
 Write that file directly. The preview updates on its own. Do not wrap with `<html>`, `<head>`, or `<!DOCTYPE>`.
 
-Numbered dump (optional): `npm run oc -- dump <id>` then `npm run oc -- apply <id>`.
+Numbered dump (optional): `pnpm oc -- dump <id>` then `pnpm oc -- apply <id>`.
 
 ## Slide HTML rules
 
@@ -50,6 +52,8 @@ Numbered dump (optional): `npm run oc -- dump <id>` then `npm run oc -- apply <i
 - Images: `/uploads/{filename}`.
 - Optional classes: `.xook-slide` `.xook-title` `.xook-body` `.xook-tag` `.xook-logo`.
 - Padding ≥ 80px. Max ~8 words on the hook. Contrast > 4.5:1.
+- Prefer `Borscha` / `Rostex` over Inter, Poppins, Montserrat.
+- Real text nodes. No stock photos, mesh gradients, or cloned icon-card grids.
 
 ## Narrative (default 5–8 slides)
 
@@ -59,10 +63,11 @@ Numbered dump (optional): `npm run oc -- dump <id>` then `npm run oc -- apply <i
 7. Summary
 8. CTA
 
-Read brand from `npm run oc -- brand` and stay on-palette.
+Read brand from `pnpm oc -- brand` and stay on-palette. Copy: casual, direct, no AI clichés (see sn-ppt-standard).
 
 ## Do not
 
 - Do not spawn Claude CLI from this repo unless the user asks for the in-app chat.
 - Do not put full HTML documents in slide files.
 - Do not exceed 20 slides.
+- Do not use AI-slop layout or copy. Follow sn-ppt-standard.

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["sharp", "archiver", "puppeteer"],
+  serverExternalPackages: ["sharp", "archiver", "puppeteer", "@cursor/sdk"],
   async headers() {
     return [
       {

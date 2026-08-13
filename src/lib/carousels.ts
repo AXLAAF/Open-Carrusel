@@ -9,7 +9,18 @@ import {
   deleteCarouselSlideFiles,
   hydrateCarouselSlides,
   hydrateSlideHtml,
+  slideHtmlMtime,
 } from "./slide-files";
+
+function stripVersions(carousel: Carousel): Carousel {
+  return {
+    ...carousel,
+    slides: carousel.slides.map((s) => ({
+      ...s,
+      previousVersions: s.previousVersions.length > 0 ? [""] : [],
+    })),
+  };
+}
 
 const FILE = "carousels.json";
 
@@ -24,7 +35,23 @@ async function save(data: CarouselsData): Promise<void> {
 export async function listCarousels(): Promise<Carousel[]> {
   const data = await load();
   const list = data.carousels.filter((c) => !c.isTemplate);
-  return Promise.all(list.map((c) => hydrateCarouselSlides(c)));
+  return Promise.all(
+    list.map(async (c) => {
+      if (c.slides.length === 0) return c;
+      const first = await hydrateSlideHtml(c.id, c.slides[0]);
+      return {
+        ...c,
+        slides: [
+          { ...first, previousVersions: [] },
+          ...c.slides.slice(1).map((s) => ({
+            ...s,
+            html: "",
+            previousVersions: [],
+          })),
+        ],
+      };
+    })
+  );
 }
 
 export async function getCarousel(id: string): Promise<Carousel | null> {
@@ -32,19 +59,20 @@ export async function getCarousel(id: string): Promise<Carousel | null> {
   const carousel = data.carousels.find((c) => c.id === id) ?? null;
   if (!carousel) return null;
   const hydrated = await hydrateCarouselSlides(carousel);
-  let changed = false;
-  for (let i = 0; i < carousel.slides.length; i++) {
-    const next = hydrated.slides[i];
-    if (next && carousel.slides[i].html !== next.html) {
-      carousel.slides[i].html = next.html;
-      changed = true;
-    }
-  }
-  if (changed) {
-    carousel.updatedAt = now();
-    await save(data);
-  }
-  return { ...carousel, slides: hydrated.slides };
+  return stripVersions({ ...carousel, slides: hydrated.slides });
+}
+
+export async function getCarouselEtag(id: string): Promise<string | null> {
+  const data = await load();
+  const carousel = data.carousels.find((c) => c.id === id) ?? null;
+  if (!carousel) return null;
+  const mtimes = await Promise.all(
+    carousel.slides.map((s) => slideHtmlMtime(carousel.id, s.id))
+  );
+  const fingerprint = carousel.slides
+    .map((s, i) => `${s.id}:${mtimes[i]}`)
+    .join(",");
+  return `"${carousel.updatedAt}-${carousel.slides.length}-${fingerprint}"`;
 }
 
 export async function createCarousel(

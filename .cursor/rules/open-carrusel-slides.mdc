@@ -12,4 +12,6 @@ Target the carousel aspect: 1:1 1080×1080, 4:5 1080×1350, 9:16 1080×1920. Min
 
 Local fonts: `Borscha`, `BorschaBold`, `Rostex`, `RostexRegular`. Optional classes: `.xook-slide`, `.xook-title`, `.xook-body`, `.xook-tag`, `.xook-logo`.
 
+Follow `.cursor/skills/sn-ppt-standard/SKILL.md`: editable text nodes, sober palette, no Inter/Poppins/mesh gradients/icon-card grids, no AI cliché copy.
+
 Images as `/uploads/{filename}`. After saving this file, the editor preview at localhost:3000 refreshes on its own — do not restart the server.

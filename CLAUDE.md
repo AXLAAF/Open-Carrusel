@@ -5,30 +5,30 @@ AI-powered Instagram carousel builder. Next.js 16 + React 19 + TypeScript + Tail
 ## Architecture
 
 - **Frontend**: React app at localhost:3000 with chat (left), preview (center), HTML inspector (right), filmstrip (bottom)
-- **Agents**: Cursor (this repo + `npm run oc`) or optional in-app Claude CLI via `/api/chat` SSE
-- **CLI**: `npm run oc -- <command>` — create/edit/export without the chat panel
+- **Agents**: Cursor SDK in-app chat (`/api/chat` SSE) or this repo + `pnpm oc`
+- **CLI**: `pnpm oc -- <command>` — create/edit/export without the chat panel
 - **Storage**: JSON in `/data/` plus slide HTML at `data/slides/{carouselId}/{slideId}.html`
 - **Export**: Puppeteer screenshots HTML slides to PNG at exact Instagram dimensions
 - **Slides**: Body-level HTML. `wrapSlideHtml()` in `src/lib/slide-html.ts` is the shared rendering contract
 
 ## Key Files
 
-- `scripts/oc.mjs` — Agent CLI (`npm run oc -- help`)
+- `scripts/oc.mjs` — Agent CLI (`pnpm oc -- help`)
 - `src/lib/chat-system-prompt.ts` — Dynamic system prompt (brand + carousel)
 - `src/lib/slide-html.ts` — `wrapSlideHtml()` wraps slide body HTML into full documents
 - `src/lib/slide-files.ts` — HTML files on disk (Cursor edits these)
 - `src/lib/data.ts` — JSON storage with async-mutex and atomic writes
 - `src/lib/carousels.ts` — Carousel and slide CRUD with version history
-- `src/lib/claude-path.ts` — Portable Claude CLI discovery (optional)
+- `src/lib/cursor-auth.ts` — `CURSOR_API_KEY` for in-app Cursor SDK chat
 
 ## CLI (Cursor / any agent)
 
 ```bash
-npm run oc -- list
-npm run oc -- create "Nombre" --ratio 4:5
-npm run oc -- slide add <id> --blank
-npm run oc -- slide update <id> <slideId> --html-file ./slide.html
-npm run oc -- export <id>
+pnpm oc -- list
+pnpm oc -- create "Nombre" --ratio 4:5
+pnpm oc -- slide add <id> --blank
+pnpm oc -- slide update <id> <slideId> --html-file ./slide.html
+pnpm oc -- export <id>
 ```
 
 After a slide exists, edit `data/slides/<carouselId>/<slideId>.html` directly. The editor polls and refreshes.
@@ -37,9 +37,9 @@ After a slide exists, edit `data/slides/<carouselId>/<slideId>.html` directly. T
 
 All at localhost:3000:
 
-- `POST /api/chat` — Claude CLI subprocess + SSE streaming (optional)
+- `POST /api/chat` — Cursor SDK local agent + SSE streaming
 - `GET/POST /api/carousels` — List/create carousels
-- `GET/PUT/DELETE /api/carousels/[id]` — Single carousel
+- `GET/PUT/DELETE /api/carousels/[id]` — Single carousel (GET supports ETag / 304)
 - `POST /api/carousels/[id]/slides` — Add slide (`html`, or `{ blank: true }`, or `{ duplicateFrom }`)
 - `PUT/DELETE /api/carousels/[id]/slides/[slideId]` — Update/delete slide
 - `POST /api/carousels/[id]/slides/[slideId]/duplicate` — Duplicate slide
@@ -58,7 +58,7 @@ All at localhost:3000:
 - Types in `src/types/`, libs in `src/lib/`, components in `src/components/`
 - All JSON mutations go through `src/lib/data.ts`; slide HTML files go through `src/lib/slide-files.ts`
 - iframe slides always use `sandbox=""` (no JavaScript execution)
-- In-app Claude (if installed) gets `--allowedTools Bash WebFetch Read` and should prefer `npm run oc`
+- In-app Cursor agent loads project skills via `local.settingSources: ["project"]` and should prefer `pnpm oc`
 
 ## Instagram Dimensions
 

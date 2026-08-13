@@ -9,9 +9,9 @@ interface AgentGuideProps {
 
 export function AgentGuide({ carouselId, compact = false }: AgentGuideProps) {
   const cmds = [
-    `npm run oc -- get ${carouselId}`,
-    `npm run oc -- slide add ${carouselId} --blank`,
-    `npm run oc -- slides ${carouselId}`,
+    `pnpm oc -- get ${carouselId}`,
+    `pnpm oc -- slide add ${carouselId} --blank`,
+    `pnpm oc -- slides ${carouselId}`,
   ];
 
   return (
@@ -21,8 +21,8 @@ export function AgentGuide({ carouselId, compact = false }: AgentGuideProps) {
           <Sparkles className="h-8 w-8 text-accent mb-3" />
           <h3 className="font-semibold text-sm mb-1">Editor listo para Cursor</h3>
           <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-            No hace falta Claude CLI. Pídeme en Cursor que diseñe las
-            diapositivas, o usa el CLI. El preview se actualiza solo.
+            El chat embebido usa Cursor SDK. Sin API key puedes pedir diapositivas
+            en este chat de Cursor o usar el CLI. El preview se actualiza solo.
           </p>
         </>
       )}
