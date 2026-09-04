@@ -64,7 +64,7 @@ function tokens(brand = {}) {
     heading,
     body,
     footerFont,
-    label: String(brand.name || "").trim() || "Open Carrusel",
+    label: String(brand.name || "").trim() || "SwipeForge",
   };
 }
 
@@ -92,7 +92,7 @@ function root(layout, extra, inner, w, h) {
 }
 
 export function defaultFields(layout, brand = {}) {
-  const footer = String(brand.name || "").trim() || "Open Carrusel";
+  const footer = String(brand.name || "").trim() || "SwipeForge";
   switch (layout) {
     case "hook":
       return { kicker: "NUEVO", title: "Titular", body: "Una idea. Una diapositiva.", footer };

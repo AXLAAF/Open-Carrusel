@@ -1,9 +1,9 @@
 ---
-name: open-carrusel
-description: Creates and edits Instagram carousels in OpenCarrusel via the oc CLI and HTML slide files. Use when designing slides, carousels, Instagram ads, Stories, Reels, or when the user asks to generate, edit, or export OpenCarrusel content.
+name: swipeforge
+description: Creates and edits Instagram carousels in SwipeForge via the oc CLI and HTML slide files. Use when designing slides, carousels, Instagram ads, Stories, Reels, or when the user asks to generate, edit, or export SwipeForge content.
 ---
 
-# OpenCarrusel
+# SwipeForge
 
 CLI-first Instagram carousel editor. The app at `http://localhost:3000` is a **manual editor** (text, type, layers, brand, export). AI is optional. Slides are body-level HTML.
 

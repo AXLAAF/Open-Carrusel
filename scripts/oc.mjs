@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OpenCarrusel CLI (oc)
+ * SwipeForge CLI (forge / oc)
  *
  * Agent-friendly: Cursor, Claude Code, Gemini CLI, or any subprocess.
  * Prefers the running app at OC_API (default http://localhost:3000).
@@ -196,7 +196,7 @@ function blankHtml(ratio = "4:5") {
   <div class="xook-tag">NUEVO</div>
   <h1 class="xook-title">Titular</h1>
   <p class="xook-body">Edita data/slides/&lt;carouselId&gt;/&lt;slideId&gt;.html o usa oc slide update.</p>
-  <div class="xook-logo">Open Carrusel</div>
+  <div class="xook-logo">SwipeForge</div>
 </div>`;
 }
 
@@ -206,11 +206,11 @@ async function shouldUseApi() {
   return serverUp();
 }
 
-const HELP = `OpenCarrusel CLI — el editor entiende esto. La IA es opcional.
+const HELP = `SwipeForge CLI — el editor entiende esto. La IA es opcional.
 
 Cómo hacer un carrusel (sin IA)
-  1. pnpm oc -- brand set --name "XookTech" --accent "#e94560" --heading Borscha --body Rostex
-  2. pnpm oc -- make --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto"
+  1. pnpm forge -- brand set --name "XookTech" --accent "#e94560" --heading Borscha --body Rostex
+  2. pnpm forge -- make --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto"
      o: pnpm oc -- compose examples/carousel-brief.md
      o: pnpm oc -- compose examples/carousel-brief.json
   3. Abre la URL del editor. Corrige texto (clic en el preview), tipo, capas y exporta a mano

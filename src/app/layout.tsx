@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Open Carrusel — AI Carousel Builder",
+  title: "SwipeForge — High-Performance Instagram Carousel Studio",
   description:
-    "Open-source AI-powered Instagram carousel builder. Create beautiful carousels with natural language.",
+    "Developer-first studio for crafting, styling, and rendering high-converting Instagram and LinkedIn carousels.",
 };
 
 export default function RootLayout({

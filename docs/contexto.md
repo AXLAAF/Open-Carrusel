@@ -1,10 +1,10 @@
-# Contexto del Proyecto: OpenCarrusel
+# Contexto del Proyecto: SwipeForge
 
 ## 1. Información General
 
-- **Nombre del Proyecto**: OpenCarrusel
+- **Nombre del Proyecto**: SwipeForge
 - **Descripción**: Generador y editor de carruseles y anuncios de Instagram. Se edita a mano, con Cursor, con el CLI `oc`, o con el chat de Claude CLI (opcional).
-- **Ruta Absoluta**: `/home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/OpenCarrusel`
+- **Ruta Absoluta**: `/home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/SwipeForge`
 - **Repositorio GitHub**: `https://github.com/AXLAAF/Open-Carrusel`
 - **URL Local**: `http://localhost:3000`
 
@@ -45,14 +45,14 @@ pnpm oc -- export <id>
 pnpm oc -- help
 ```
 
-Skill de Cursor: `.cursor/skills/open-carrusel/SKILL.md`
+Skill de Cursor: `.cursor/skills/swipeforge/SKILL.md`
 
 ---
 
 ## 5. Comandos
 
 ```bash
-cd /home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/OpenCarrusel
+cd /home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/SwipeForge
 pnpm dev         # turbopack, http://localhost:3000
 pnpm oc -- help
 pnpm build

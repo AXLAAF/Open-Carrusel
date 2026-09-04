@@ -3,7 +3,7 @@ name: sn-ppt-standard
 description: >-
   Genera estructuras de negocios y diapositivas lógicas que priorizan elementos
   limpios y editables en lugar de imágenes infladas o bloques difíciles de
-  modificar. Use when designing OpenCarrusel slides, carousels, Instagram ads,
+  modificar. Use when designing SwipeForge slides, carousels, Instagram ads,
   pitch decks, or any presentation HTML so output does not look AI-generated.
 ---
 
@@ -11,7 +11,7 @@ description: >-
 
 Una skill enfocada en generar estructuras de negocios y diapositivas lógicas que priorizan elementos limpios y editables en lugar de imágenes infladas o bloques difíciles de modificar en PowerPoint.
 
-Léela **siempre** al crear o editar slides. Combínala con `.cursor/skills/open-carrusel/SKILL.md`.
+Léela **siempre** al crear o editar slides. Combínala con `.cursor/skills/swipeforge/SKILL.md`.
 
 ## Estructura basada en significado
 

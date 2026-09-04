@@ -1,9 +1,9 @@
 services:
-  open-carrusel:
+  swipeforge:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: open-carrusel
+    container_name: swipeforge
     restart: unless-stopped
     ports:
       - "3000:3000"

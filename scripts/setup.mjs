@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Cross-platform setup for Open Carrusel. Runs on macOS, Linux, and Windows.
+// Cross-platform setup for SwipeForge. Runs on macOS, Linux, and Windows.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -105,7 +105,7 @@ function getPackageManager() {
 }
 
 async function main() {
-  log("Setting up Open Carrusel...");
+  log("Setting up SwipeForge...");
   log("");
 
   const pm = getPackageManager();
@@ -136,7 +136,7 @@ async function main() {
     return;
   }
 
-  log("Starting Open Carrusel...");
+  log("Starting SwipeForge...");
   log("  Open http://localhost:3000 in your browser");
   log("");
   runSync(pm, ["run", "dev"]);

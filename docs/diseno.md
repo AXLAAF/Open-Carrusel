@@ -1,4 +1,4 @@
-# Diseno y Brand System - OpenCarrusel
+# Diseno y Brand System - SwipeForge
 
 ## 1. Identidad Visual XookTech
 - **Fondo Oscuro**: `#0A0F1E`

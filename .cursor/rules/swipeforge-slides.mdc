@@ -1,10 +1,10 @@
 ---
-description: HTML rules for OpenCarrusel Instagram slides. Apply when editing slide HTML or generating carousel content.
+description: HTML rules for SwipeForge Instagram slides. Apply when editing slide HTML or generating carousel content.
 globs: data/slides/**/*.html,data/workspace/**/*.html
 alwaysApply: false
 ---
 
-# OpenCarrusel slide HTML
+# SwipeForge slide HTML
 
 Body-level HTML only. No `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`, or `<script>`.
 

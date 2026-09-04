@@ -1,7 +1,7 @@
-# Arquitectura del Sistema - OpenCarrusel
+# Arquitectura del Sistema - SwipeForge
 
 ## 1. Vision Arquitectonica
-OpenCarrusel es un sistema desacoplado para la creacion, edicion y exportacion de carruseles editoriales para redes sociales. Esta disenado para operar bajo alta concurrencia local o en servidor, garantizando consumo minimo de memoria y CPU.
+SwipeForge es un sistema desacoplado para la creacion, edicion y exportacion de carruseles editoriales para redes sociales. Esta disenado para operar bajo alta concurrencia local o en servidor, garantizando consumo minimo de memoria y CPU.
 
 ```mermaid
 flowchart TB

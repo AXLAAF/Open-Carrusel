@@ -1,4 +1,4 @@
-# Despliegue en Produccion y Operacion - OpenCarrusel
+# Despliegue en Produccion y Operacion - SwipeForge
 
 ## 1. Despliegue con Docker
 Se incluye un `Dockerfile` multi-etapa con Node 22 slim y Chromium headless preinstalado:
@@ -18,7 +18,7 @@ npm ci
 npm run build
 
 # Iniciar proceso de produccion
-pm2 start npm --name "open-carrusel" --max-memory-restart 1024M -- start
+pm2 start npm --name "swipeforge" --max-memory-restart 1024M -- start
 pm2 save
 ```
 

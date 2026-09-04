@@ -42,7 +42,7 @@ Layouts: `hook` `setup` `value` `list` `quote` `stat` `summary` `cta`.
 
 HTML de cada slide: `data/slides/<carouselId>/<slideId>.html` (solo body). El preview se actualiza solo.
 
-Reglas de diseño: `.cursor/skills/open-carrusel/SKILL.md` y `.cursor/skills/sn-ppt-standard/SKILL.md`. Una idea por slide. Última slide = CTA. Sin copy de IA.
+Reglas de diseño: `.cursor/skills/swipeforge/SKILL.md` y `.cursor/skills/sn-ppt-standard/SKILL.md`. Una idea por slide. Última slide = CTA. Sin copy de IA.
 
 ## Cómo publicar
 

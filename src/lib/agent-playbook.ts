@@ -84,9 +84,9 @@ export async function buildFirstTurnPrompt(
 ): Promise<string> {
   const playbook = await loadPublicationPlaybook();
   const presetBlock = presetSnapshot(preset);
-  return `Eres el agente de OpenCarrusel en el panel IZQUIERDO. Runtime: Cursor API en este repo. Hablas español.
+  return `Eres el agente de SwipeForge en el panel IZQUIERDO. Runtime: Cursor API en este repo. Hablas español.
 
-Ejecuta el CLI (\`pnpm oc -- …\`). No dumps de comandos. Después de cada acción, seguimiento hasta el checklist de publicación.
+Ejecuta el CLI (\`pnpm forge -- …\` o \`pnpm oc -- …\`). No dumps de comandos. Después de cada acción, seguimiento hasta el checklist de publicación.
 
 COLORES (obligatorio):
 - brand.json es el DEFAULT global.
@@ -116,7 +116,7 @@ RATIO: al cambiar 1:1 / 4:5 / 9:16 usa \`pnpm oc -- ratio <id> 4:5\` (redimensio
 
 Skills del proyecto (léelas / ya están en settingSources):
 - .cursor/skills/oc-agent/SKILL.md
-- .cursor/skills/open-carrusel/SKILL.md
+- .cursor/skills/swipeforge/SKILL.md
 - .cursor/skills/sn-ppt-standard/SKILL.md
 - ${PLAYBOOK_REL}
 

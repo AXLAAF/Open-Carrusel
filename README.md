@@ -1,6 +1,6 @@
 <div align="center">
 
-# Open Carrusel
+# SwipeForge
 
 ### Chat with the CLI. Design in the editor. Export pixel-perfect PNGs.
 
@@ -21,7 +21,7 @@
 
 ## Table of contents
 
-- [Why Open Carrusel](#-why-open-carrusel)
+- [Why SwipeForge](#-why-swipeforge)
 - [See it in action](#-see-it-in-action)
 - [Quickstart (60 seconds)](#-quickstart-60-seconds)
 - [What you can do](#-what-you-can-do)
@@ -38,7 +38,7 @@
 
 ---
 
-## ✨ Why Open Carrusel
+## Why SwipeForge
 
 Designing Instagram carousels eats hours. You either:
 
@@ -46,7 +46,7 @@ Designing Instagram carousels eats hours. You either:
 - Wrestle Canva templates that everyone else also uses
 - Hand-craft slides in Figma and lose your weekend
 
-**Open Carrusel takes a different bet.** The CLI knows how to build a carousel. The app is a real editor so you correct by hand. AI can help, but you do not depend on it.
+**SwipeForge takes a different bet.** The CLI knows how to build a carousel. The app is a real editor so you correct by hand. AI can help, but you do not depend on it.
 
 Compose a full carousel from a brief, then tweak type, layers, brand, and export in the UI — or stay in the terminal. Everything runs on your laptop.
 
@@ -54,7 +54,7 @@ It's open source under MIT. Fork it, tweak the system prompt, ship your own vari
 
 ---
 
-## 🎬 See it in action
+## See it in action
 
 **Dashboard** — your carousels, templates, and one-click export.
 
@@ -68,7 +68,7 @@ It's open source under MIT. Fork it, tweak the system prompt, ship your own vari
 
 ---
 
-## 🚀 Quickstart (60 seconds)
+## Quickstart (60 seconds)
 
 > First run takes 1–2 minutes (Puppeteer downloads ~300 MB of Chromium for PNG export). After that, every launch is seconds.
 
@@ -101,7 +101,7 @@ Design slides in the editor, with **Cursor**, or with `npm run oc`. Claude Code 
 
 ---
 
-## 🧰 What you can do
+## What you can do
 
 - **CLI-first workflow**: `oc compose` builds a full carousel from a topic + points. No chat required.
 - **Manual editor**: text, typography, padding, layers, brand, media, history, and Instagram checklist. AI is a helper, not a gate.
@@ -117,40 +117,40 @@ Design slides in the editor, with **Cursor**, or with `npm run oc`. Claude Code 
 
 ---
 
-## 💬 How it works (CLI + editor, AI optional)
+## How it works (CLI + editor, AI optional)
 
 You can design slides in **three ways**. They all write the same data; the preview refreshes on its own.
 
-1. **CLI** — `npm run oc -- help`. This is the default. Cursor, Gemini, or a terminal can drive it.
+1. **CLI** — `npm run forge -- help`. This is the default. Cursor, Gemini, or a terminal can drive it.
 2. **Editor** — correct text, type, layers, brand, and export by hand. Do not wait on AI for every tweak.
 3. **In-app chat** — optional. If [Claude Code](https://docs.anthropic.com/en/docs/claude-code) is installed, the left panel spawns it (`/api/chat`, SSE).
 
 ### Make a carousel
 
 ```bash
-npm run oc -- brand set --name "Marca" --accent "#e94560" --heading Inter --body Inter
-npm run oc -- compose --name "5 errores" --topic "Tu carrusel no convierte" --points "Hook débil|Texto largo|Sin CTA" --cta "Guarda esto"
-npm run oc -- export <id> --format png
+npm run forge -- brand set --name "Marca" --accent "#e94560" --heading Inter --body Inter
+npm run forge -- compose --name "5 errores" --topic "Tu carrusel no convierte" --points "Hook débil|Texto largo|Sin CTA" --cta "Guarda esto"
+npm run forge -- export <id> --format png
 ```
 
-Or pass a brief file: `npm run oc -- compose examples/carousel-brief.json`.
+Or pass a brief file: `npm run forge -- compose examples/carousel-brief.json`.
 
 Then open the printed URL and fix copy in Diseño / Capas. HTML also lives at `data/slides/<id>/<slideId>.html`.
 
 ### CLI cheat sheet
 
 ```bash
-npm run oc -- list
-npm run oc -- compose --name "Morning habits" --topic "3 habits" --points "A|B|C" --cta "Save this"
-npm run oc -- slide add <id> --layout hook --title "Stop scrolling" --kicker "CARRUSEL"
-npm run oc -- caption <id> --text "..." --hashtags tag1,tag2
-npm run oc -- export <id> --slide <slideId> --format jpg --quality 90
-npm run oc -- doctor
+npm run forge -- list
+npm run forge -- compose --name "Morning habits" --topic "3 habits" --points "A|B|C" --cta "Save this"
+npm run forge -- slide add <id> --layout hook --title "Stop scrolling" --kicker "CARRUSEL"
+npm run forge -- caption <id> --text "..." --hashtags tag1,tag2
+npm run forge -- export <id> --slide <slideId> --format jpg --quality 90
+npm run forge -- doctor
 ```
 
 When you ask for a slide, the agent:
 
-1. Reads brand config + carousel state (`npm run oc -- brand` / `get`)
+1. Reads brand config + carousel state (`npm run forge -- brand` / `get`)
 2. Writes body-level HTML/CSS
 3. Saves via `oc slide add/update` or by writing the HTML file
 4. The filmstrip updates within ~2 seconds
@@ -184,7 +184,7 @@ Because the same wrap function feeds both paths, what you see is exactly what yo
 
 ---
 
-## 🛠 Slash commands
+## Slash commands
 
 Type these inside Claude Code:
 
@@ -206,7 +206,7 @@ npm run doctor    # run scripts/doctor.mjs (works pre-`npm install`)
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -249,7 +249,7 @@ For more, see [`CLAUDE.md`](./CLAUDE.md) — the architecture doc tuned for AI a
 
 ---
 
-## 📦 Tech stack
+## Tech stack
 
 | Layer        | Tool                                                                              |
 |--------------|-----------------------------------------------------------------------------------|
@@ -266,10 +266,10 @@ For more, see [`CLAUDE.md`](./CLAUDE.md) — the architecture doc tuned for AI a
 
 ---
 
-## 📁 Project structure
+## Project structure
 
 ```
-open-carrusel/
+swipeforge/
 ├── .claude/
 │   └── commands/             ← /start, /stop, /reset, /doctor (Claude Code slash commands)
 ├── data/                     ← user state (gitignored): brand, carousels, templates, exports
@@ -310,7 +310,7 @@ open-carrusel/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment variables (`.env.local`)
 
@@ -366,7 +366,7 @@ Open the brand setup (gear icon) and confirm your colors and style keywords are 
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 Open ideas — PRs welcome. Tick what you ship, add your own.
 
@@ -383,7 +383,7 @@ Open ideas — PRs welcome. Tick what you ship, add your own.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 PRs welcome. The bar:
 
@@ -396,7 +396,7 @@ Good first contributions: roadmap items above, more brand templates, accessibili
 
 ---
 
-## 📄 License
+## License
 
 [MIT](./LICENSE) — do anything you want with it.
 

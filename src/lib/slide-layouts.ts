@@ -54,7 +54,7 @@ function tokens(brand: BrandConfig) {
     heading,
     body,
     footerFont,
-    label: brand.name?.trim() || "Open Carrusel",
+    label: brand.name?.trim() || "SwipeForge",
   };
 }
 
@@ -188,7 +188,7 @@ export function renderLayout(
 }
 
 export function defaultFields(layout: LayoutId, brand: BrandConfig): SlideFields {
-  const footer = brand.name?.trim() || "Open Carrusel";
+  const footer = brand.name?.trim() || "SwipeForge";
   switch (layout) {
     case "hook":
       return { kicker: "NUEVO", title: "Titular", body: "Una idea. Una diapositiva.", footer };

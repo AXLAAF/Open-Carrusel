@@ -1,4 +1,4 @@
-# Construccion de Software y Calidad de Codigo - OpenCarrusel
+# Construccion de Software y Calidad de Codigo - SwipeForge
 
 ## 1. Directrices de Ingenieria
 - **Tipado Fuerte**: Todo el modelo de datos y rutas API se rigen por interfaces TypeScript estrictas (`src/types/`).

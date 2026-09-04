@@ -44,7 +44,7 @@ async function fetchUrl(url: string): Promise<{ html: string; finalUrl: string }
       redirect: "follow",
       headers: {
         "User-Agent":
-          "OpenCarrusel/0.1 (+local; import brief; compatible)",
+          "SwipeForge/0.1 (+local; import brief; compatible)",
         Accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8",
       },
     });

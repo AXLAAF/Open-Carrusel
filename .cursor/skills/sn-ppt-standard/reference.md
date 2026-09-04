@@ -1,6 +1,6 @@
 # Diseño anti-IA (Vercel + Frontend Design, adaptado a slides)
 
-Referencia compacta. Las slides de OpenCarrusel no son UI interactiva: aplica jerarquía, tipo, color y espacio. Ignora focus rings, forms y hover.
+Referencia compacta. Las slides de SwipeForge no son UI interactiva: aplica jerarquía, tipo, color y espacio. Ignora focus rings, forms y hover.
 
 ## Tipografía
 

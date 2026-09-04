@@ -1,4 +1,4 @@
-# Open Carrusel
+# SwipeForge
 
 CLI-first Instagram carousel editor. Next.js 16 + React 19 + TypeScript + Tailwind v4. AI is optional.
 
