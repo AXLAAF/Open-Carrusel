@@ -4,12 +4,15 @@
     "**/.next/**",
     "**/node_modules/**",
     "**/public/uploads/**",
-    "**/.cache/**"
+    "**/.cache/**",
+    "**/data/**"
   ],
   "format_on_save": "on",
   "project_panel": {
     "entry_spacing": "comfortable",
     "folder_icons": true,
-    "file_icons": true
+    "file_icons": true,
+    "hide_gitignore": true,
+    "sort_mode": "directories_first"
   }
 }
