@@ -10,6 +10,7 @@ import { CarouselPreview } from "@/components/editor/CarouselPreview";
 import { SlideFilmstrip } from "@/components/editor/SlideFilmstrip";
 import { CaptionPanel } from "@/components/editor/CaptionPanel";
 import { FullscreenPreview } from "@/components/editor/FullscreenPreview";
+import { ShortcutsHelp } from "@/components/editor/ShortcutsHelp";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
 import { StudioPanel, type StudioTab } from "@/components/studio/StudioPanel";
 import { useEditorShortcuts } from "@/components/editor/useEditorShortcuts";
@@ -27,7 +28,10 @@ function carouselUnchanged(a: Carousel, b: Carousel): boolean {
     a.name !== b.name ||
     a.aspectRatio !== b.aspectRatio ||
     a.caption !== b.caption ||
-    a.slides.length !== b.slides.length
+    a.slides.length !== b.slides.length ||
+    JSON.stringify(a.palette || null) !== JSON.stringify(b.palette || null) ||
+    JSON.stringify(a.hookVariants || null) !== JSON.stringify(b.hookVariants || null) ||
+    a.activeHookVariantId !== b.activeHookVariantId
   ) {
     return false;
   }
@@ -46,12 +50,13 @@ export default function CarouselEditorPage({ params }: PageProps) {
   const [notFound, setNotFound] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [cursorAvailable, setCursorAvailable] = useState(true);
-  const [chatOpen, setChatOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
   const [studioOpen, setStudioOpen] = useState(true);
   const [studioTab, setStudioTab] = useState<StudioTab>("design");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [brand, setBrand] = useState<BrandConfig | null>(null);
@@ -66,40 +71,84 @@ export default function CarouselEditorPage({ params }: PageProps) {
   const saveTimer = useRef<number | null>(null);
   const redoStack = useRef<string[]>([]);
   const dirtyRef = useRef(false);
+  const captionDirtyRef = useRef(false);
   const etagRef = useRef<string | null>(null);
+  const draftById = useRef<Record<string, string>>({});
+  const pollAbort = useRef<AbortController | null>(null);
+  const persistHtmlRef = useRef<(slideId: string, html: string) => Promise<void>>(
+    async () => {}
+  );
+  const handleCaptionDirty = useCallback((d: boolean) => {
+    captionDirtyRef.current = d;
+  }, []);
 
-  const fetchCarousel = useCallback(async () => {
+  const fetchCarousel = useCallback(async (opts?: { force?: boolean }) => {
+    pollAbort.current?.abort();
+    const ac = new AbortController();
+    pollAbort.current = ac;
     try {
       const headers: HeadersInit = {};
-      if (etagRef.current) headers["If-None-Match"] = etagRef.current;
-      const res = await fetch(`/api/carousels/${id}`, { headers });
+      if (!opts?.force && etagRef.current) {
+        headers["If-None-Match"] = etagRef.current;
+      }
+      const res = await fetch(`/api/carousels/${id}`, {
+        headers,
+        signal: ac.signal,
+      });
       if (res.status === 404) {
         setNotFound(true);
         return;
       }
       if (res.status === 304) return;
-      if (res.ok) {
-        const nextEtag = res.headers.get("ETag");
-        if (nextEtag) etagRef.current = nextEtag;
-        const data: Carousel = await res.json();
-        setCarousel((prev) => {
-          if (prev && carouselUnchanged(prev, data)) return prev;
-          if (prev && data.slides.length > prev.slides.length) {
-            setActiveSlide(data.slides.length - 1);
-          } else {
-            setActiveSlide((prevIdx) =>
-              data.slides.length === 0
-                ? 0
-                : Math.min(prevIdx, data.slides.length - 1)
-            );
-          }
-          return data;
-        });
+      if (!res.ok) return;
+      const nextEtag = res.headers.get("ETag");
+      const data: Carousel = await res.json();
+      if (ac.signal.aborted) return;
+      // Skip poll updates while the user has unsaved local edits — unless forced
+      // (e.g. hook pick must win over a stale draft).
+      if (dirtyRef.current && !opts?.force) return;
+      if (nextEtag) etagRef.current = nextEtag;
+      let jumpToLast = false;
+      let skipActive = false;
+      setCarousel((prev) => {
+        if (prev && carouselUnchanged(prev, data)) {
+          skipActive = true;
+          return prev;
+        }
+        jumpToLast = !!(prev && data.slides.length > prev.slides.length);
+        return data;
+      });
+      if (!skipActive) {
+        setActiveSlide((prevIdx) =>
+          data.slides.length === 0
+            ? 0
+            : jumpToLast
+              ? data.slides.length - 1
+              : Math.min(prevIdx, data.slides.length - 1)
+        );
       }
-    } catch {
-      // ignore network errors
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
     }
   }, [id]);
+
+  /** After hook generate/pick: drop stale draft so preview shows the server HTML. */
+  const handleHookApplied = useCallback(
+    async (info?: { slideId?: string }) => {
+      if (saveTimer.current) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+      if (info?.slideId) {
+        delete draftById.current[info.slideId];
+        setDraft((d) => (d?.id === info.slideId ? null : d));
+      }
+      dirtyRef.current = Object.keys(draftById.current).length > 0;
+      etagRef.current = null;
+      await fetchCarousel({ force: true });
+    },
+    [fetchCarousel]
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -119,47 +168,102 @@ export default function CarouselEditorPage({ params }: PageProps) {
   }, [fetchCarousel]);
 
   useEffect(() => {
+    if (notFound) return;
     const tick = () => {
-      if (document.hidden || dirtyRef.current) return;
-      fetchCarousel();
+      if (document.hidden || dirtyRef.current || captionDirtyRef.current) return;
+      void fetchCarousel();
     };
+    const onVisibilityChange = () => {
+      if (!document.hidden && !dirtyRef.current && !captionDirtyRef.current) {
+        void fetchCarousel();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
     const ms = isGenerating ? 1000 : 3000;
     const interval = setInterval(tick, ms);
-    return () => clearInterval(interval);
-  }, [isGenerating, fetchCarousel]);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [isGenerating, fetchCarousel, notFound]);
 
   const current = carousel?.slides[activeSlide] ?? null;
   const draftHtml =
     current && draft?.id === current.id ? draft.html : (current?.html ?? "");
 
   const persistHtml = useCallback(
-    async (html: string) => {
-      if (!current) return;
+    async (slideId: string, html: string) => {
       dirtyRef.current = true;
-      await fetch(`/api/carousels/${id}/slides/${current.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ html }),
-      });
-      dirtyRef.current = false;
-      redoStack.current = [];
-      await fetchCarousel();
+      try {
+        const res = await fetch(`/api/carousels/${id}/slides/${slideId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ html }),
+        });
+        if (!res.ok) return;
+        if (draftById.current[slideId] === html) {
+          delete draftById.current[slideId];
+        }
+        if (Object.keys(draftById.current).length === 0) {
+          dirtyRef.current = false;
+        }
+        redoStack.current = [];
+        if (!dirtyRef.current) await fetchCarousel();
+      } catch {
+        dirtyRef.current = true;
+      }
     },
-    [current, id, fetchCarousel]
+    [id, fetchCarousel]
   );
+  useEffect(() => {
+    persistHtmlRef.current = persistHtml;
+  }, [persistHtml]);
 
   const handleHtmlChange = useCallback(
     (html: string) => {
       if (!current) return;
-      setDraft({ id: current.id, html });
+      const slideId = current.id;
+      draftById.current[slideId] = html;
+      setDraft({ id: slideId, html });
       dirtyRef.current = true;
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
       saveTimer.current = window.setTimeout(() => {
-        void persistHtml(html);
+        void persistHtml(slideId, html);
       }, 450);
     },
     [current, persistHtml]
   );
+
+  const prevSlideIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevSlideIdRef.current;
+    const next = current?.id ?? null;
+    if (prev === next) return;
+    if (prev && draftById.current[prev] != null) {
+      if (saveTimer.current) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+      void persistHtml(prev, draftById.current[prev]);
+    }
+    prevSlideIdRef.current = next;
+    if (next && draftById.current[next] != null) {
+      setDraft({ id: next, html: draftById.current[next] });
+    } else {
+      setDraft(null);
+    }
+  }, [current?.id, persistHtml]);
+
+  useEffect(() => {
+    return () => {
+      pollAbort.current?.abort();
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      const slideId = prevSlideIdRef.current;
+      if (slideId && draftById.current[slideId] != null) {
+        void persistHtmlRef.current(slideId, draftById.current[slideId]);
+      }
+    };
+  }, []);
 
   const handleDeleteSlide = (slideId: string) => {
     if (!carousel) return;
@@ -179,7 +283,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
 
   const handleUndoSlide = async (slideId: string) => {
     if (current && current.id === slideId) {
-      redoStack.current.push(current.html);
+      redoStack.current.push(draftHtml || current.html);
     }
     const res = await fetch(`/api/carousels/${id}/slides/${slideId}/undo`, {
       method: "POST",
@@ -190,7 +294,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
   const handleRedo = async () => {
     const html = redoStack.current.pop();
     if (!html || !current) return;
-    await persistHtml(html);
+    await persistHtml(current.id, html);
   };
 
   const handleAddSlide = async (layout: LayoutId = "value") => {
@@ -228,24 +332,29 @@ export default function CarouselEditorPage({ params }: PageProps) {
 
   const handleReorderSlides = useCallback(
     async (slideIds: string[]) => {
-      await fetch(`/api/carousels/${id}/slides`, {
+      const res = await fetch(`/api/carousels/${id}/slides`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slideIds }),
       });
-      await fetchCarousel();
+      if (res.ok) await fetchCarousel();
     },
     [id, fetchCarousel]
   );
 
   const handleAspectChange = async (ratio: AspectRatio) => {
     if (!carousel) return;
+    dirtyRef.current = false;
     const res = await fetch(`/api/carousels/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ aspectRatio: ratio }),
     });
-    if (res.ok) setCarousel(await res.json());
+    if (res.ok) {
+      draftById.current = {};
+      setDraft(null);
+      await fetchCarousel();
+    }
   };
 
   const handleRestyle = async () => {
@@ -282,6 +391,18 @@ export default function CarouselEditorPage({ params }: PageProps) {
     },
     onZoomIn: () => setZoom((z) => Math.min(4, Math.round((z + 0.1) * 10) / 10)),
     onZoomOut: () => setZoom((z) => Math.max(0.25, Math.round((z - 0.1) * 10) / 10)),
+    onFullscreen: () => setShowFullscreen((v) => !v),
+    onToggleChat: () => setChatOpen((v) => !v),
+    onFocusChat: () => {
+      setChatOpen(true);
+      requestAnimationFrame(() => chatInputRef.current?.focus());
+    },
+    onToggleStudio: () => setStudioOpen((v) => !v),
+    onStudioTab: (tab) => {
+      setStudioOpen(true);
+      setStudioTab(tab);
+    },
+    onHelp: () => setShowHelp((v) => !v),
   });
 
   if (notFound) {
@@ -331,7 +452,12 @@ export default function CarouselEditorPage({ params }: PageProps) {
         aspectRatio={carousel.aspectRatio}
         activeIndex={activeSlide}
         onActiveChange={setActiveSlide}
+        username={brand?.name || carousel.name}
+        caption={carousel.caption}
+        hashtags={carousel.hashtags}
       />
+
+      <ShortcutsHelp open={showHelp} onOpenChange={setShowHelp} />
 
       <ConfirmDialog
         open={confirmState.open}
@@ -345,7 +471,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
 
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {chatOpen && (
-          <div className="oc-fade w-80 border-r border-border shrink-0 flex flex-col bg-surface">
+          <div className="oc-fade w-96 border-r border-border shrink-0 flex flex-col bg-surface">
             <ChatPanel
               carouselId={id}
               cursorAvailable={cursorAvailable}
@@ -400,6 +526,8 @@ export default function CarouselEditorPage({ params }: PageProps) {
             onZoomChange={setZoom}
             pan={pan}
             onPanChange={setPan}
+            editable
+            onHtmlChange={handleHtmlChange}
           />
 
           <CaptionPanel
@@ -407,6 +535,7 @@ export default function CarouselEditorPage({ params }: PageProps) {
             caption={carousel.caption}
             hashtags={carousel.hashtags}
             onSaved={fetchCarousel}
+            onDirtyChange={handleCaptionDirty}
           />
         </div>
 
@@ -422,14 +551,19 @@ export default function CarouselEditorPage({ params }: PageProps) {
               brand={brand}
               onHtmlChange={handleHtmlChange}
               onSaved={fetchCarousel}
+              onHookApplied={handleHookApplied}
               onBrandSaved={setBrand}
               onRestyle={handleRestyle}
               onRestore={(html) => {
-                void persistHtml(html);
+                if (current) void persistHtml(current.id, html);
               }}
               onFullscreen={() => setShowFullscreen(true)}
               showSafeZones={showSafeZones}
               onToggleSafeZones={() => setShowSafeZones((v) => !v)}
+              onJumpSlide={(slideId) => {
+                const idx = carousel.slides.findIndex((s) => s.id === slideId);
+                if (idx >= 0) setActiveSlide(idx);
+              }}
             />
           </div>
         )}

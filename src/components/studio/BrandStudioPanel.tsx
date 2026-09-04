@@ -4,15 +4,24 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ColorPicker } from "@/components/brand/ColorPicker";
+import { CarouselPaletteEditor } from "./CarouselPaletteEditor";
 import type { BrandConfig } from "@/types/brand";
 import type { StylePreset } from "@/types/style-preset";
+import type { Carousel } from "@/types/carousel";
 
 interface BrandStudioPanelProps {
+  carousel?: Carousel | null;
   onBrandSaved?: (brand: BrandConfig) => void;
   onRestyle?: () => void;
+  onCarouselSaved?: () => void;
 }
 
-export function BrandStudioPanel({ onBrandSaved, onRestyle }: BrandStudioPanelProps) {
+export function BrandStudioPanel({
+  carousel,
+  onBrandSaved,
+  onRestyle,
+  onCarouselSaved,
+}: BrandStudioPanelProps) {
   const [brand, setBrand] = useState<BrandConfig | null>(null);
   const [presets, setPresets] = useState<StylePreset[]>([]);
   const [saving, setSaving] = useState(false);
@@ -60,8 +69,11 @@ export function BrandStudioPanel({ onBrandSaved, onRestyle }: BrandStudioPanelPr
     }
   };
 
+  const carouselId = carousel?.id;
+
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs">
+      <p className="text-[10px] font-medium text-muted-foreground">Marca global</p>
       <label className="block">
         <span className="text-[10px] text-muted-foreground">Nombre</span>
         <Input
@@ -85,6 +97,14 @@ export function BrandStudioPanel({ onBrandSaved, onRestyle }: BrandStudioPanelPr
         value={brand.colors.background}
         onChange={(background) => setBrand({ ...brand, colors: { ...brand.colors, background } })}
       />
+      <ColorPicker
+        label="Texto"
+        value={brand.colors.text || "#ffffff"}
+        onChange={(text) => setBrand({ ...brand, colors: { ...brand.colors, text } })}
+      />
+      <p className="text-[10px] text-muted-foreground leading-relaxed -mt-1">
+        Default para todos los carruseles. Si un carrusel tiene paleta propia, esa gana.
+      </p>
       <label className="block">
         <span className="text-[10px] text-muted-foreground">Fuente titular</span>
         <Input
@@ -102,11 +122,37 @@ export function BrandStudioPanel({ onBrandSaved, onRestyle }: BrandStudioPanelPr
         />
       </label>
       <Button size="sm" className="w-full" disabled={saving} onClick={save}>
-        {saving ? "Guardando…" : "Guardar marca"}
+        {saving ? "Guardando…" : "Guardar marca global"}
       </Button>
       <Button size="sm" variant="outline" className="w-full" onClick={onRestyle}>
         Aplicar marca a esta diapositiva
       </Button>
+      {carouselId && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full"
+          onClick={async () => {
+            await fetch(`/api/carousels/${carouselId}/restyle`, { method: "POST" });
+            onRestyle?.();
+            onCarouselSaved?.();
+          }}
+        >
+          Aplicar a todo el carrusel
+        </Button>
+      )}
+
+      {carousel && (
+        <CarouselPaletteEditor
+          key={`${carousel.id}-${carousel.updatedAt}-${JSON.stringify(carousel.palette || {})}`}
+          carousel={carousel}
+          brand={brand}
+          onSaved={() => {
+            onRestyle?.();
+            onCarouselSaved?.();
+          }}
+        />
+      )}
 
       {presets.length > 0 && (
         <section className="space-y-1.5 pt-2 border-t border-border">

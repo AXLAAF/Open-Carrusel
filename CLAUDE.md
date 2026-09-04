@@ -4,9 +4,9 @@ CLI-first Instagram carousel editor. Next.js 16 + React 19 + TypeScript + Tailwi
 
 ## Architecture
 
-- **Frontend**: React app at localhost:3000 — preview (center), studio editor (right: text/type/layers/brand/media/history/publish/HTML), filmstrip (bottom), optional chat (left)
-- **CLI**: `pnpm oc -- <command>` — compose, brand, templates, export. Cursor and other agents should prefer this (`npm run oc` still works)
-- **Agents**: Cursor SDK in-app chat (`/api/chat` SSE) or this repo + `pnpm oc`
+- **Frontend**: React app at localhost:3000 — Cursor agent (left: CLI + `docs/publicacion.md`), preview (center), studio editor (right: text/type/layers/brand/media/history/publish/HTML), filmstrip (bottom)
+- **CLI**: `pnpm oc -- <command>` — compose, brand, templates, export. The left-rail agent and other agents run this (`npm run oc` still works)
+- **Agents**: Cursor SDK left-rail agent (`/api/chat` SSE, `CURSOR_API_KEY`). Session resume for follow-up. Playbook: `docs/publicacion.md`
 - **Storage**: JSON in `/data/` plus slide HTML at `data/slides/{carouselId}/{slideId}.html`
 - **Export**: Puppeteer screenshots HTML slides to PNG/JPG at exact Instagram dimensions
 - **Slides**: Body-level HTML with `data-oc-layout` / `data-oc-field` / `data-oc-layer`. `wrapSlideHtml()` in `src/lib/slide-html.ts` is the shared rendering contract
@@ -18,7 +18,13 @@ CLI-first Instagram carousel editor. Next.js 16 + React 19 + TypeScript + Tailwi
 - `src/lib/slide-layouts.ts` — Layout HTML for the app
 - `src/lib/slide-fields.ts` — Parse/update `data-oc-field` for the visual editor
 - `src/lib/compose.ts` — Create a full carousel from a brief
-- `src/lib/chat-system-prompt.ts` — Dynamic system prompt (brand + carousel)
+- `src/lib/brand-palette.ts` — Pure merge of global brand + per-carousel `palette` (safe for client)
+- `src/lib/brand-resolve.ts` — Server `brandForCarousel` (loads brand.json)
+- `src/lib/hook-variants.ts` — Generate 3 A/B hook titles (question / bold / curiosity)
+- `src/lib/publish-ready.ts` — Caption/export checklist + queue readiness
+- `src/lib/layout-library.ts` — XookTech reusable brand layouts (`data/layout-library.json`)
+- `src/lib/slide-review.ts` — Auto review (contrast, padding, hook words, CTA)
+- `src/lib/import-source.ts` — URL / PDF / Notion → brief.md
 - `src/lib/slide-html.ts` — `wrapSlideHtml()` wraps slide body HTML into full documents
 - `src/lib/slide-files.ts` — HTML files on disk (Cursor edits these)
 - `src/lib/data.ts` — JSON storage with async-mutex and atomic writes
@@ -50,6 +56,10 @@ All at localhost:3000:
 - `GET /api/uploads` — Media library list
 - `POST /api/style-presets/[id]/apply` — Copy preset into brand
 - `POST /api/carousels/[id]/restyle` — Re-render slides with current brand
+- `GET/PUT /api/schedule` — Publication queue (list / set date / status)
+- `GET/POST /api/layout-library` — XookTech brand layouts (list / apply / reseed)
+- `GET /api/carousels/[id]/review` — Auto design review
+- `POST /api/import` — URL / PDF / Notion / text → brief (+ optional compose)
 - `POST /api/chat` — Cursor SDK local agent + SSE streaming
 - `GET/POST /api/carousels` — List/create carousels
 - `GET/PUT/DELETE /api/carousels/[id]` — Single carousel (GET supports ETag / 304)

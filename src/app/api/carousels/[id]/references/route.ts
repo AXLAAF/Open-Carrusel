@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import path from "path";
 import { addReferenceImage, removeReferenceImage, getCarousel } from "@/lib/carousels";
 import { generateId, now } from "@/lib/utils";
+import { resolveInside } from "@/lib/safe-path";
+
+const UPLOADS_ROOT = path.resolve(process.cwd(), "public", "uploads");
 
 export async function GET(
   _request: Request,
@@ -28,7 +31,18 @@ export async function POST(
       return NextResponse.json({ error: "url is required" }, { status: 400 });
     }
 
-    const absPath = path.resolve(process.cwd(), "public", url.replace(/^\//, ""));
+    if (!url.startsWith("/uploads/") || url.includes("..")) {
+      return NextResponse.json(
+        { error: "url must be an /uploads/ path" },
+        { status: 400 }
+      );
+    }
+
+    const rel = url.replace(/^\/uploads\/+/, "");
+    const absPath = resolveInside(UPLOADS_ROOT, rel);
+    if (!absPath) {
+      return NextResponse.json({ error: "Invalid upload path" }, { status: 400 });
+    }
 
     const ref = {
       id: generateId(),

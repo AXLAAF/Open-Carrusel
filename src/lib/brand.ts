@@ -1,4 +1,4 @@
-import { readDataSafe, writeData } from "./data";
+import { readDataSafe, updateData } from "./data";
 import { now } from "./utils";
 import type { BrandConfig } from "@/types/brand";
 import { DEFAULT_BRAND } from "@/types/brand";
@@ -12,16 +12,27 @@ export async function getBrand(): Promise<BrandConfig> {
 export async function updateBrand(
   updates: Partial<Omit<BrandConfig, "createdAt" | "updatedAt">>
 ): Promise<BrandConfig> {
-  const current = await getBrand();
-  const updated: BrandConfig = {
-    ...current,
-    ...updates,
-    colors: { ...current.colors, ...updates.colors },
-    fonts: { ...current.fonts, ...updates.fonts },
-    updatedAt: now(),
-    createdAt: current.createdAt || now(),
-  };
-  await writeData(FILE, updated);
+  const colors =
+    updates.colors && typeof updates.colors === "object" ? updates.colors : undefined;
+  const fonts =
+    updates.fonts && typeof updates.fonts === "object" ? updates.fonts : undefined;
+
+  let updated!: BrandConfig;
+  await updateData<BrandConfig>(FILE, DEFAULT_BRAND, (current) => {
+    if (typeof updates.name === "string") current.name = updates.name;
+    if (colors) current.colors = { ...current.colors, ...colors };
+    if (fonts) current.fonts = { ...current.fonts, ...fonts };
+    if (Array.isArray(updates.customFonts)) current.customFonts = updates.customFonts;
+    if (updates.logoPath === null || typeof updates.logoPath === "string") {
+      current.logoPath = updates.logoPath;
+    }
+    if (Array.isArray(updates.styleKeywords)) {
+      current.styleKeywords = updates.styleKeywords.filter((k) => typeof k === "string");
+    }
+    current.updatedAt = now();
+    current.createdAt = current.createdAt || now();
+    updated = current;
+  });
   return updated;
 }
 

@@ -1,7 +1,10 @@
 import { readFile, writeFile, rename, mkdir, rm, stat } from "fs/promises";
 import path from "path";
+import { randomBytes } from "crypto";
+import { Mutex } from "async-mutex";
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
+const htmlMutexes = new Map<string, Mutex>();
 
 export function slideHtmlRelPath(carouselId: string, slideId: string): string {
   return path.join("slides", carouselId, `${slideId}.html`);
@@ -11,6 +14,15 @@ function assertSafeId(id: string): void {
   if (!id || id.includes("..") || id.includes("/") || id.includes("\\")) {
     throw new Error("Invalid id");
   }
+}
+
+function getHtmlMutex(filePath: string): Mutex {
+  let mutex = htmlMutexes.get(filePath);
+  if (!mutex) {
+    mutex = new Mutex();
+    htmlMutexes.set(filePath, mutex);
+  }
+  return mutex;
 }
 
 export function slideHtmlAbsPath(carouselId: string, slideId: string): string {
@@ -25,10 +37,17 @@ export async function writeSlideHtml(
   html: string
 ): Promise<void> {
   const filePath = slideHtmlAbsPath(carouselId, slideId);
-  await mkdir(path.dirname(filePath), { recursive: true });
-  const tmpPath = filePath + ".tmp";
-  await writeFile(tmpPath, html, "utf-8");
-  await rename(tmpPath, filePath);
+  await getHtmlMutex(filePath).runExclusive(async () => {
+    await mkdir(path.dirname(filePath), { recursive: true });
+    const tmpPath = `${filePath}.${process.pid}.${randomBytes(6).toString("hex")}.tmp`;
+    try {
+      await writeFile(tmpPath, html, "utf-8");
+      await rename(tmpPath, filePath);
+    } catch (err) {
+      await rm(tmpPath, { force: true }).catch(() => {});
+      throw err;
+    }
+  });
 }
 
 export async function readSlideHtml(

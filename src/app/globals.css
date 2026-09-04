@@ -1,4 +1,6 @@
-@import "tailwindcss";
+/* source() pins class scanning to this repo — without it Turbopack may
+   treat the parent Projects/ folder as the root and fail to resolve Tailwind. */
+@import "tailwindcss" source("../..");
 
 :root {
   --background: #fafafa;

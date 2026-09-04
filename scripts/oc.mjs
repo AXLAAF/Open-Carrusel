@@ -200,27 +200,31 @@ function blankHtml(ratio = "4:5") {
 </div>`;
 }
 
-async function useApi() {
+async function shouldUseApi() {
   if (fileOnly) return false;
   if (apiOnly) return true;
   return serverUp();
 }
 
-const HELP = `OpenCarrusel CLI — the editor understands this. AI is optional.
+const HELP = `OpenCarrusel CLI — el editor entiende esto. La IA es opcional.
+
+Cómo hacer un carrusel (sin IA)
+  1. pnpm oc -- brand set --name "XookTech" --accent "#e94560" --heading Borscha --body Rostex
+  2. pnpm oc -- make --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto"
+     o: pnpm oc -- compose examples/carousel-brief.md
+     o: pnpm oc -- compose examples/carousel-brief.json
+  3. Abre la URL del editor. Corrige texto (clic en el preview), tipo, capas y exporta a mano
+  4. pnpm oc -- export <id> --format png
 
 Usage:
-  npm run oc -- <command> [args] [--json]
+  pnpm oc -- <command> [args] [--json]
+  npm run oc -- <command>   (equivale)
 
-How to make a carousel (no AI)
-  1. npm run oc -- brand set --name "Marca" --accent "#e94560" --heading Inter --body Inter
-  2. npm run oc -- compose --name "5 errores" --topic "Tu hook" --points "Uno|Dos|Tres" --cta "Guarda esto"
-     or: npm run oc -- compose brief.json
-  3. Open the editor URL and correct text, type, layers, and export by hand
-  4. npm run oc -- export <id> --format png
-
-Compose / layouts
-  compose [--name] [--topic] [--points a|b|c] [--cta] [--ratio] [--caption] [--hashtags]
-  compose <brief.json>
+Compose
+  make | compose [--name] [--topic] [--points a|b|c] [--cta] [--ratio] [--caption] [--hashtags]
+                 [--primary] [--accent] [--background] [--text]
+  compose <brief.md|brief.json>
+  playbook [docs/publicacion.md]
   layouts
 
 Carousels
@@ -230,9 +234,37 @@ Carousels
   delete <id>
   duplicate <id>
   rename <id> <name>
-  ratio <id> <1:1|4:5|9:16>
+  ratio <id> <1:1|4:5|9:16>   # also resizes slide HTML
   open <id>
   path <id> [slideId]
+
+Palette (per carousel — does not rewrite brand.json)
+  palette <id>                         # show
+  palette <id> --background "#111" --text "#fff" --accent "#e94560"
+  palette clear <id>
+
+Hook A/B (3 opciones persistentes — cambia cuando quieras)
+  hook variants <id> [--title "..."]
+  hook pick <id> <1|2|3>
+
+Schedule / queue
+  schedule list
+  schedule <id> --at "2026-08-20T18:00"
+  schedule clear <id>
+  schedule status <id> draft|ready|scheduled|published
+
+Brand layout library (XookTech)
+  library list
+  library apply <layoutId> <carouselId> [--slide id | --add]
+  library reseed
+
+Review
+  review <id>
+
+Import (URL / Notion / PDF → brief.md → compose)
+  import <url> [--compose] [--out brief.md] [--name] [--ratio]
+  import <file.pdf> [--compose]
+  import --text "..." [--compose]
 
 Slides
   slides <id>
@@ -240,6 +272,7 @@ Slides
                  [--title] [--body] [--kicker] [--footer] [--items a|b|c]
                  [--quote] [--author] [--stat] [--label] [--notes]
   slide add <id> [--blank] [--html-file f] [--html '...'] [--notes '...']
+  slide field <id> <slideId> --title "..." [--body] [--kicker] [--footer]
   slide get|update|delete|duplicate|undo <id> <slideId>
   slide restyle <id> <slideId> [--layout hook]
   reorder <id> <id1,id2,...>
@@ -250,7 +283,7 @@ Workspace
 
 Brand / templates / media
   brand
-  brand set --name --primary --secondary --accent --background --surface --heading --body --logo --keywords
+  brand set --name --primary --secondary --accent --background --surface --text --heading --body --logo --keywords
   brand apply <carouselId>
   templates list|save <carouselId>|use <templateId>
   presets list|apply <presetId> [--carousel id]
@@ -275,6 +308,7 @@ Env
 Manual edits
   data/slides/<carouselId>/<slideId>.html
   Preview: http://localhost:3000/carousel/<id> (polls; no restart)
+  Clic en el texto del preview; rail derecho = Diseño · Capas · Marca · Medios · Historial · Publicar · HTML
 `;
 
 async function main() {
@@ -284,7 +318,7 @@ async function main() {
     return;
   }
 
-  const http = await useApi();
+  const http = await shouldUseApi();
   bindCli({
     args,
     ROOT,
@@ -341,12 +375,20 @@ async function main() {
     case "export":
       return cmdExport(http);
     case "compose":
+    case "make":
     case "templates":
     case "presets":
     case "upload":
     case "duplicate":
     case "doctor":
     case "layouts":
+    case "playbook":
+    case "palette":
+    case "hook":
+    case "schedule":
+    case "library":
+    case "review":
+    case "import":
       return dispatchStudio(cmd, http);
     default:
       die(`unknown command "${cmd}". Run: npm run oc -- help`);
@@ -481,14 +523,29 @@ async function cmdRatio(http) {
     const updated = await api("PUT", `/api/carousels/${id}`, {
       aspectRatio: ratio,
     });
-    print(updated, `Aspect ratio → ${ratio}`);
+    print(
+      updated,
+      `Aspect ratio → ${ratio} (slides redimensionados a ${ratio === "1:1" ? "1080×1080" : ratio === "4:5" ? "1080×1350" : "1080×1920"})`
+    );
     return;
   }
+  const { resizeSlideHtml } = await import("./lib/layouts.mjs");
   const store = await loadStore();
   const c = store.carousels.find((x) => x.id === id);
   if (!c) die("Carousel not found");
   c.aspectRatio = ratio;
   c.updatedAt = now();
+  for (const slide of c.slides) {
+    const file = slideFile(id, slide.id);
+    try {
+      const html = await readFile(file, "utf-8");
+      const next = resizeSlideHtml(html, ratio);
+      await writeFile(file, next, "utf-8");
+      slide.html = next;
+    } catch {
+      // slide file missing — skip
+    }
+  }
   await saveStore(store);
   print(c, `Aspect ratio → ${ratio}`);
 }
@@ -554,10 +611,12 @@ async function cmdSlide(http) {
       return slideDuplicate(http, id);
     case "undo":
       return slideUndo(http, id);
+    case "field":
+      return slideField(http, id);
     case "restyle":
       return slideRestyle(http, id);
     default:
-      die(`unknown slide command "${sub}"`);
+      die(`unknown slide command "${sub}". Use add|get|update|field|delete|duplicate|undo|restyle`);
   }
 }
 
@@ -629,6 +688,73 @@ async function slideGet(http, id) {
     process.stdout.write(slide.html);
     if (!slide.html.endsWith("\n")) process.stdout.write("\n");
   }
+}
+
+async function slideField(http, id) {
+  const slideId = args.shift();
+  if (!slideId) die("slide field <carouselId> <slideId> --title|--body|--kicker|--footer ...");
+  const patch = {
+    kicker: takeOpt("kicker"),
+    title: takeOpt("title"),
+    body: takeOpt("body"),
+    footer: takeOpt("footer"),
+    quote: takeOpt("quote"),
+    author: takeOpt("author"),
+    stat: takeOpt("stat"),
+    label: takeOpt("label"),
+  };
+  const entries = Object.entries(patch).filter(([, v]) => v != null && v !== "");
+  if (entries.length === 0) {
+    die("provide at least one of --title --body --kicker --footer --quote --author --stat --label");
+  }
+
+  const c = await getCarousel(http, id);
+  await materialize(c);
+  const slide = c.slides.find((s) => s.id === slideId);
+  if (!slide) die("Slide not found");
+
+  let html = slide.html;
+  for (const [name, text] of entries) {
+    html = patchOcField(html, name, text);
+  }
+
+  if (http) {
+    const updated = await api("PUT", `/api/carousels/${id}/slides/${slideId}`, { html });
+    print(updated, `Updated fields on ${slideId}`);
+    return;
+  }
+
+  const store = await loadStore();
+  const found = store.carousels.find((x) => x.id === id);
+  const target = found?.slides.find((s) => s.id === slideId);
+  if (!found || !target) die("Slide not found");
+  if (html !== target.html) {
+    target.previousVersions.push(target.html);
+    if (target.previousVersions.length > 5) target.previousVersions.shift();
+    target.html = html;
+  }
+  found.updatedAt = now();
+  await saveStore(store);
+  await writeSlide(id, slideId, html);
+  print(target, `Updated fields on ${slideId}`);
+}
+
+function patchOcField(html, name, text) {
+  const needle = `data-oc-field="${name}"`;
+  const idx = html.indexOf(needle);
+  if (idx === -1) return html;
+  const gt = html.indexOf(">", idx);
+  const tagStart = html.lastIndexOf("<", idx);
+  const tagMatch = html.slice(tagStart + 1).match(/^([a-zA-Z0-9-]+)/);
+  if (!tagMatch || gt === -1) return html;
+  const close = `</${tagMatch[1]}>`;
+  const closeAt = html.indexOf(close, gt);
+  if (closeAt === -1) return html;
+  const escaped = String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return html.slice(0, gt + 1) + escaped + html.slice(closeAt);
 }
 
 async function slideUpdate(http, id) {

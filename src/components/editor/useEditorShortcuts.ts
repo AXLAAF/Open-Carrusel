@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { Carousel, Slide } from "@/types/carousel";
+import type { StudioTab } from "@/components/studio/StudioPanel";
 
 function isTypingTarget(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -23,6 +24,12 @@ interface EditorShortcuts {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onActual: () => void;
+  onFullscreen: () => void;
+  onToggleChat: () => void;
+  onFocusChat: () => void;
+  onToggleStudio: () => void;
+  onStudioTab: (tab: StudioTab) => void;
+  onHelp: () => void;
 }
 
 export function useEditorShortcuts({
@@ -38,6 +45,12 @@ export function useEditorShortcuts({
   onZoomIn,
   onZoomOut,
   onActual,
+  onFullscreen,
+  onToggleChat,
+  onFocusChat,
+  onToggleStudio,
+  onStudioTab,
+  onHelp,
 }: EditorShortcuts) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -46,6 +59,9 @@ export function useEditorShortcuts({
       if (e.code === "Space" && !isTypingTarget(e.target)) {
         e.preventDefault();
       }
+      if (e.key === "Escape") {
+        return;
+      }
       if (!isTypingTarget(e.target)) {
         if (e.key === "ArrowLeft") onPrev();
         if (e.key === "ArrowRight") onNext();
@@ -53,7 +69,36 @@ export function useEditorShortcuts({
           e.preventDefault();
           onDelete(current.id);
         }
+        if (e.key === "f" || e.key === "F") {
+          e.preventDefault();
+          onFullscreen();
+        }
+        if (e.key === "/") {
+          e.preventDefault();
+          onFocusChat();
+        }
+        if (e.key === "[") {
+          e.preventDefault();
+          onToggleChat();
+        }
+        if (e.key === "]") {
+          e.preventDefault();
+          onToggleStudio();
+        }
+        if (e.key === "e" || e.key === "E") {
+          e.preventDefault();
+          onStudioTab("html");
+        }
+        if (e.key === "p" || e.key === "P") {
+          e.preventDefault();
+          onStudioTab("publish");
+        }
+        if (e.key === "?") {
+          e.preventDefault();
+          onHelp();
+        }
       }
+      if (isTypingTarget(e.target)) return;
       if (meta && e.key.toLowerCase() === "d" && current) {
         e.preventDefault();
         void onDuplicate(current.id);
@@ -98,5 +143,11 @@ export function useEditorShortcuts({
     onZoomIn,
     onZoomOut,
     onActual,
+    onFullscreen,
+    onToggleChat,
+    onFocusChat,
+    onToggleStudio,
+    onStudioTab,
+    onHelp,
   ]);
 }

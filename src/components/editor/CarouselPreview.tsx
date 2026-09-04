@@ -17,6 +17,8 @@ interface CarouselPreviewProps {
   onZoomChange?: (zoom: number) => void;
   pan?: { x: number; y: number };
   onPanChange?: (pan: { x: number; y: number }) => void;
+  editable?: boolean;
+  onHtmlChange?: (html: string) => void;
 }
 
 export function CarouselPreview({
@@ -29,6 +31,8 @@ export function CarouselPreview({
   onZoomChange,
   pan = { x: 0, y: 0 },
   onPanChange,
+  editable = false,
+  onHtmlChange,
 }: CarouselPreviewProps) {
   const slide = slides[activeIndex];
   const spaceRef = useRef(false);
@@ -127,6 +131,8 @@ export function CarouselPreview({
             html={slide.html}
             aspectRatio={aspectRatio}
             zoom={zoom}
+            editable={editable}
+            onHtmlChange={onHtmlChange}
             style={{ width: "100%", height: "100%" }}
           />
           <SafeZoneOverlay aspectRatio={aspectRatio} visible={showSafeZones} />
@@ -162,6 +168,11 @@ export function CarouselPreview({
             {activeIndex + 1}/{slides.length}
           </span>
         </div>
+      )}
+      {editable && (
+        <p className="text-[10px] text-muted-foreground text-center pb-3">
+          Clic en el texto del preview para editar · Diseño/capas a la derecha · CLI: oc make
+        </p>
       )}
     </div>
   );

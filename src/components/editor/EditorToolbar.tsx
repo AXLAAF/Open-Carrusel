@@ -110,7 +110,7 @@ export function EditorToolbar({
         size="sm"
         onClick={onFullscreen}
         className="text-muted-foreground"
-        title="Vista completa / swipe"
+        title="Ventana Instagram (F)"
       >
         <Maximize2 className="h-3.5 w-3.5" />
       </Button>
@@ -143,10 +143,11 @@ export function EditorToolbar({
       </Button>
       <button
         onClick={onToggleChat}
+        title="Agente Cursor ( /  para escribir, [ para ocultar)"
         className="text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md border border-border hover:bg-muted inline-flex items-center gap-1.5"
       >
         <MessageSquare className="h-3 w-3" />
-        {chatOpen ? "Ocultar chat" : "Chat"}
+        {chatOpen ? "Ocultar agente" : "Agente"}
       </button>
       <ExportDialog
         carouselId={carouselId}

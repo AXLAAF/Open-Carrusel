@@ -17,6 +17,12 @@ Before designing, follow `.cursor/skills/sn-ppt-standard/SKILL.md` so slides do 
 
 ```bash
 pnpm oc -- compose --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto" --ratio 4:5
+# alias
+pnpm oc -- make --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto"
+# one-shot colors (user palette wins over brand.json for this carousel):
+pnpm oc -- make --name "..." --topic "..." --points "a|b" --cta "Guarda" --background "#111" --text "#fff" --accent "#e94560"
+# or
+pnpm oc -- compose examples/carousel-brief.md
 # or
 pnpm oc -- compose examples/carousel-brief.json
 ```
@@ -41,9 +47,23 @@ Layouts: `hook` `setup` `value` `list` `quote` `stat` `summary` `cta`
 
 ```bash
 pnpm oc -- list
-pnpm oc -- compose --name "..." --topic "..." --points "a|b|c" --cta "Guarda"
+pnpm oc -- compose --name "..." --topic "..." --points "a|b|c" --cta "Guarda" --background "#111" --text "#fff"
+pnpm oc -- ratio <id> 4:5
+pnpm oc -- palette <id> --background "#111" --text "#fff" --accent "#e94560"
+pnpm oc -- hook variants <id>
+pnpm oc -- hook pick <id> 2
+pnpm oc -- schedule list
+pnpm oc -- schedule <id> --at "2026-08-20T18:00"
+pnpm oc -- library list
+pnpm oc -- library apply xook-hook-4x5 <id> --add
+pnpm oc -- review <id>
+pnpm oc -- import https://ejemplo.com --compose
+pnpm oc -- import ./doc.pdf --compose
+pnpm oc -- brand set --background "#0a0a0a" --text "#ffffff" --accent "#e94560"
+pnpm oc -- brand apply <id>
 pnpm oc -- slide add <id> --layout hook --title "..." --body "..." --kicker "CARRUSEL"
 pnpm oc -- slide add <id> --layout list --title "..." --items "Uno|Dos|Tres"
+pnpm oc -- slide field <id> <slideId> --title "Nuevo titular"
 pnpm oc -- slide restyle <id> <slideId> --layout value
 pnpm oc -- caption <id> --text "..." --hashtags tag1,tag2
 pnpm oc -- brand apply <id>
@@ -68,7 +88,7 @@ Body-level HTML only. Prefer layouts with:
 - `data-oc-field="kicker|title|body|footer|..."`
 - `data-oc-layer="title"`
 
-The editor reads those attributes for text, type, padding, and layers. You can still edit the file directly.
+The editor reads those attributes for text, type, padding, and layers. Click text in the preview to edit in place. You can still edit the file directly.
 
 Numbered dump (optional): `pnpm oc -- dump <id>` then `pnpm oc -- apply <id>`.
 
@@ -86,11 +106,23 @@ Numbered dump (optional): `pnpm oc -- dump <id>` then `pnpm oc -- apply <id>`.
 
 Right rail: Diseño · Capas · Marca · Medios · Historial · Publicar · HTML.
 
-Shortcuts: ← → slides, ⌘D duplicate, Delete, ⌘Z undo, ⌘⇧Z redo, ⌘0 fit, ⌘+/- zoom, space-drag pan.
+        Shortcuts: ← → slides, F Instagram, / agente, E código, P publicar, ? ayuda, ⌘D duplicate, Delete, ⌘Z undo, ⌘⇧Z redo, ⌘0 fit, ⌘+/- zoom, space-drag pan.
 
-Do not depend on in-app chat. Prefer `pnpm oc` and the visual editor. Chat uses Cursor SDK when `CURSOR_API_KEY` is set.
+Do not depend on waiting for permission. The left-rail in-app agent (Cursor API) runs `pnpm oc`, follows `docs/publicacion.md`, and keeps the session until caption + export are done. Hand corrections stay in the visual editor.
 
-Read brand from `pnpm oc -- brand` and stay on-palette. Copy: casual, direct, no AI clichés (see sn-ppt-standard).
+Read brand from `pnpm oc -- brand` as the default palette. If the user asks for other colors for this carousel, those win via **carousel palette** (not brand.json): `pnpm oc -- palette <id> --background … --text …`. Compose `--background/--text/--accent` also saves the palette on the carousel.
+
+Hook A/B: `pnpm oc -- hook variants <id>` then `hook pick <id> 1|2|3`. The three stay saved; switch anytime. Studio shows Activo on the selected one.
+
+Publication queue: after caption + export, `pnpm oc -- schedule <id> --at "…"` and `schedule list`. Home tab **Cola**.
+
+XookTech layout library: `pnpm oc -- library list` / `library apply <layoutId> <carouselId> [--add|--slide]`. Home tab **Biblioteca**; Diseño rail picker.
+
+Auto review: `pnpm oc -- review <id>` (contrast, padding ≥80, hook ≤8 words, CTA last). Studio tab **Revisión**.
+
+Import: `pnpm oc -- import <url|file.pdf> --compose` or home **Importar** (URL / Notion público / PDF → brief `.md` → compose).
+
+Follow `docs/publicacion.md`: 5–10 slides, hook first, CTA last, caption, ≥3 hashtags, PNG export, center-safe for 1:1 crop. Ratio changes must resize slide HTML (`pnpm oc -- ratio <id> 4:5`).
 
 ## Do not
 

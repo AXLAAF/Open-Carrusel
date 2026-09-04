@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import archiver from "archiver";
-import { getCarousel } from "@/lib/carousels";
+import { getCarousel, updateCarousel } from "@/lib/carousels";
 import {
   exportAllSlides,
   type ExportFormat,
   type ExportNaming,
 } from "@/lib/export-slides";
+import { isQueueReady } from "@/lib/publish-ready";
+import { now } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,7 +46,8 @@ export async function POST(
   }
 
   const format = options.format === "jpg" ? "jpg" : "png";
-  const naming = options.naming === "id" || options.naming === "name" ? options.naming : "index";
+  const naming =
+    options.naming === "id" || options.naming === "name" ? options.naming : "index";
   const quality = options.quality;
   const wanted = Array.isArray(options.slideIds) ? new Set(options.slideIds) : null;
   const slides = wanted
@@ -63,6 +66,17 @@ export async function POST(
       carouselName: carousel.name,
     });
 
+    const exportedAt = now();
+    const withExport = { ...carousel, lastExportAt: exportedAt };
+    const patch: {
+      lastExportAt: string;
+      publishStatus?: "ready" | "scheduled";
+    } = { lastExportAt: exportedAt };
+    if (isQueueReady(withExport) && carousel.publishStatus !== "published") {
+      patch.publishStatus = carousel.scheduledAt ? "scheduled" : "ready";
+    }
+    await updateCarousel(id, patch);
+
     if (files.length === 1) {
       const file = files[0];
       const mime = format === "jpg" ? "image/jpeg" : "image/png";
@@ -70,6 +84,7 @@ export async function POST(
         headers: {
           "Content-Type": mime,
           "Content-Disposition": `attachment; filename="${file.name}"`,
+          "X-OC-Export-At": exportedAt,
         },
       });
     }
@@ -77,27 +92,34 @@ export async function POST(
     const zipBuffer = await new Promise<Buffer>((resolve, reject) => {
       const archive = archiver("zip", { zlib: { level: 5 } });
       const chunks: Buffer[] = [];
+      let settled = false;
+
+      const fail = (err: unknown) => {
+        if (settled) return;
+        settled = true;
+        archive.destroy();
+        reject(err);
+      };
 
       archive.on("data", (chunk: Buffer) => {
         chunks.push(chunk);
       });
 
       archive.on("end", () => {
+        if (settled) return;
+        settled = true;
         resolve(Buffer.concat(chunks));
       });
 
-      archive.on("error", (err) => {
-        reject(err);
-      });
+      archive.on("error", fail);
 
       try {
         for (const { name, buffer } of files) {
           archive.append(buffer, { name });
         }
-        archive.finalize();
+        void archive.finalize();
       } catch (err) {
-        archive.destroy();
-        reject(err);
+        fail(err);
       }
     });
 
@@ -106,6 +128,7 @@ export async function POST(
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${zipName}"`,
+        "X-OC-Export-At": exportedAt,
       },
     });
   } catch (error) {

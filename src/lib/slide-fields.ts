@@ -1,4 +1,5 @@
 import type { AspectRatio } from "@/types/carousel";
+import { DIMENSIONS } from "@/types/carousel";
 import type { BrandConfig } from "@/types/brand";
 import type { LayoutId, SlideFields } from "@/types/layout";
 import { isLayoutId } from "@/types/layout";
@@ -197,6 +198,21 @@ export function setFieldText(html: string, field: string, text: string): string 
   return replaceElement(html, `data-oc-field="${field}"`, { inner });
 }
 
+export function insertImage(html: string, url: string, alt = ""): string {
+  const safeUrl = url.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const safeAlt = alt.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const el = findElement(html, `data-oc-field="image"`);
+  if (el && el.tag === "img") {
+    const open = html.slice(el.start, el.end);
+    const next = setAttr(setAttr(open, "src", safeUrl), "alt", safeAlt);
+    return html.slice(0, el.start) + next + html.slice(el.closeEnd);
+  }
+  const img = `<img data-oc-field="image" data-oc-layer="image" src="${safeUrl}" alt="${safeAlt}" style="max-width:100%;height:auto;object-fit:cover;border-radius:8px;" />`;
+  const last = html.lastIndexOf("</div>");
+  if (last !== -1) return html.slice(0, last) + img + html.slice(last);
+  return `${html}${img}`;
+}
+
 export function setFieldStyle(html: string, field: string, patch: Record<string, string>): string {
   return replaceElement(html, `data-oc-field="${field}"`, {
     openTag: (open) => {
@@ -258,6 +274,18 @@ export function setRootStyle(html: string, patch: Record<string, string>): strin
   const style = { ...parseStyle(attr(open, "style") || ""), ...patch };
   const next = setAttr(open, "style", serializeStyle(style));
   return html.slice(0, el.start) + next + html.slice(el.end);
+}
+
+/** Change baked slide dimensions without rebuilding layout/colors. */
+export function resizeSlideHtml(html: string, ratio: AspectRatio): string {
+  const { width, height } = DIMENSIONS[ratio];
+  const src = html || "";
+  if (/width:\s*\d+px/i.test(src) || /height:\s*\d+px/i.test(src)) {
+    return src
+      .replace(/width:\s*\d+px/gi, `width:${width}px`)
+      .replace(/height:\s*\d+px/gi, `height:${height}px`);
+  }
+  return setRootStyle(src, { width: `${width}px`, height: `${height}px` });
 }
 
 function escapeInner(text: string): string {

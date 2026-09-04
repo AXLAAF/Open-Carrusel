@@ -1,0 +1,27 @@
+services:
+  open-carrusel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: open-carrusel
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      - CURSOR_API_KEY=${CURSOR_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+      - ./public/uploads:/app/public/uploads
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    healthcheck:
+      test: ["CMD-SHELL", "node -e 'fetch(\"http://localhost:3000/api/brand\").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

@@ -3,6 +3,7 @@ import { DIMENSIONS } from "@/types/carousel";
 import type { BrandConfig } from "@/types/brand";
 import type { CarouselBrief, LayoutId, SlideFields, SlideSpec } from "@/types/layout";
 import { isLayoutId } from "@/types/layout";
+import { resolveForeground } from "@/lib/color-contrast";
 
 export { LAYOUT_IDS, LAYOUT_LABELS, isLayoutId } from "@/types/layout";
 export type { LayoutId, SlideFields, SlideSpec, CarouselBrief } from "@/types/layout";
@@ -32,7 +33,11 @@ function tokens(brand: BrandConfig) {
     xook && defaultBg
       ? "linear-gradient(135deg, #1B2B6B 0%, #2D4BD4 50%, #00D4FF 100%)"
       : brand.colors.background || "#0a0a0a";
-  const fg = xook && defaultBg ? "#ffffff" : brand.colors.primary || "#1a1a2e";
+  // Never use brand primary as text just because it exists — white on dark / text token wins.
+  const fg = resolveForeground(bg, {
+    text: brand.colors.text,
+    primary: brand.colors.primary,
+  });
   const heading = xook
     ? "'BorschaBold', 'Borscha', sans-serif"
     : `'${brand.fonts.heading || "Inter"}', sans-serif`;
@@ -85,20 +90,20 @@ export function renderLayout(
     field(
       "h1",
       "title",
-      `font-family:${t.heading};font-size:${size}px;font-weight:800;line-height:1.08;margin:0 0 24px;text-align:${align};letter-spacing:-1px;`,
+      `font-family:${t.heading};font-size:${size}px;font-weight:800;line-height:1.08;margin:0 0 24px;text-align:${align};letter-spacing:-1px;color:inherit;`,
       title
     );
   const bodyEl = (size = 28, align = "left") =>
     field(
       "p",
       "body",
-      `font-family:${t.body};font-size:${size}px;line-height:1.4;opacity:0.9;margin:0;max-width:860px;text-align:${align};white-space:pre-wrap;`,
+      `font-family:${t.body};font-size:${size}px;line-height:1.4;opacity:0.9;margin:0;max-width:860px;text-align:${align};white-space:pre-wrap;color:inherit;`,
       body
     );
   const footerEl = field(
     "p",
     "footer",
-    `font-family:${t.footerFont};position:absolute;bottom:56px;left:80px;right:80px;font-size:20px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;margin:0;`,
+    `font-family:${t.footerFont};position:absolute;bottom:56px;left:80px;right:80px;font-size:20px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;margin:0;color:inherit;`,
     footer
   );
 

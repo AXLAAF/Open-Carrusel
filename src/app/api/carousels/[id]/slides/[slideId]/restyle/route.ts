@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCarousel, updateSlide } from "@/lib/carousels";
-import { getBrand } from "@/lib/brand";
+import { brandForCarousel } from "@/lib/brand-resolve";
 import { restyleHtml } from "@/lib/slide-fields";
 import { isLayoutId } from "@/types/layout";
 
@@ -26,7 +26,7 @@ export async function POST(
     layout = undefined;
   }
 
-  const brand = await getBrand();
+  const brand = await brandForCarousel(carousel);
   const html = restyleHtml(
     slide.html,
     brand,
@@ -34,5 +34,8 @@ export async function POST(
     layout && isLayoutId(layout) ? layout : null
   );
   const updated = await updateSlide(id, slideId, { html });
+  if (!updated) {
+    return NextResponse.json({ error: "Slide not found" }, { status: 404 });
+  }
   return NextResponse.json(updated);
 }

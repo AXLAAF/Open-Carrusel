@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Copy, Check, ChevronDown, ChevronUp, Hash, MessageSquare, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ interface CaptionPanelProps {
   caption?: string;
   hashtags?: string[];
   onSaved?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export function CaptionPanel({
@@ -16,6 +17,7 @@ export function CaptionPanel({
   caption = "",
   hashtags = [],
   onSaved,
+  onDirtyChange,
 }: CaptionPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const [draftCaption, setDraftCaption] = useState(caption);
@@ -23,11 +25,8 @@ export function CaptionPanel({
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [copiedHashtags, setCopiedHashtags] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setDraftCaption(caption);
-    setDraftTags(hashtags.join(" "));
-  }, [caption, hashtags]);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const copyTimers = useRef<number[]>([]);
 
   const parsedTags = draftTags
     .split(/[,\s]+/)
@@ -38,26 +37,51 @@ export function CaptionPanel({
     draftCaption !== (caption || "") ||
     parsedTags.join(" ") !== hashtags.join(" ");
 
+  useEffect(() => {
+    if (dirty) return;
+    setDraftCaption(caption);
+    setDraftTags(hashtags.join(" "));
+  }, [caption, hashtags, dirty]);
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
+
+  useEffect(() => {
+    const timers = copyTimers.current;
+    return () => {
+      for (const id of timers) window.clearTimeout(id);
+    };
+  }, []);
+
   const handleCopy = async (text: string, type: "caption" | "hashtags") => {
     await navigator.clipboard.writeText(text);
     if (type === "caption") {
       setCopiedCaption(true);
-      setTimeout(() => setCopiedCaption(false), 2000);
+      copyTimers.current.push(window.setTimeout(() => setCopiedCaption(false), 2000));
     } else {
       setCopiedHashtags(true);
-      setTimeout(() => setCopiedHashtags(false), 2000);
+      copyTimers.current.push(window.setTimeout(() => setCopiedHashtags(false), 2000));
     }
   };
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
-      await fetch(`/api/carousels/${carouselId}/caption`, {
+      const res = await fetch(`/api/carousels/${carouselId}/caption`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ caption: draftCaption, hashtags: parsedTags }),
       });
+      if (!res.ok) {
+        setSaveError("No se pudo guardar el caption");
+        return;
+      }
       onSaved?.();
+    } catch {
+      setSaveError("No se pudo guardar el caption");
     } finally {
       setSaving(false);
     }
@@ -100,7 +124,7 @@ export function CaptionPanel({
                 ) : (
                   <Copy className="h-2.5 w-2.5" />
                 )}
-                {copiedCaption ? "Copied" : "Copy"}
+                {copiedCaption ? "Copiado" : "Copiar"}
               </Button>
             </div>
             <textarea
@@ -132,7 +156,7 @@ export function CaptionPanel({
                 ) : (
                   <Copy className="h-2.5 w-2.5" />
                 )}
-                {copiedHashtags ? "Copied" : "Copy All"}
+                {copiedHashtags ? "Copiado" : "Copiar"}
               </Button>
             </div>
             <input
@@ -155,6 +179,9 @@ export function CaptionPanel({
             )}
           </div>
 
+          {saveError && (
+            <p className="text-[11px] text-destructive">{saveError}</p>
+          )}
           <Button
             size="sm"
             className="w-full"

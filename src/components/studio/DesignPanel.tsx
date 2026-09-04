@@ -16,19 +16,41 @@ import {
   type OcField,
 } from "@/lib/slide-fields";
 import { Button } from "@/components/ui/button";
+import { isDarkBackground } from "@/lib/color-contrast";
+import { HookVariantsPanel } from "./HookVariantsPanel";
+import { BrandLibraryPicker } from "./BrandLibraryPicker";
+import { mergeBrandWithPalette } from "@/lib/brand-palette";
+import type { Carousel } from "@/types/carousel";
 
 interface DesignPanelProps {
   html: string;
   brand: BrandConfig | null;
   aspectRatio: AspectRatio;
+  carousel?: Carousel;
+  slideId?: string;
   onChange: (html: string) => void;
+  onCarouselSaved?: () => void;
+  onHookApplied?: (info?: { slideId?: string }) => void;
 }
 
-export function DesignPanel({ html, brand, aspectRatio, onChange }: DesignPanelProps) {
+export function DesignPanel({
+  html,
+  brand,
+  aspectRatio,
+  carousel,
+  slideId,
+  onChange,
+  onCarouselSaved,
+  onHookApplied,
+}: DesignPanelProps) {
   const editable = useMemo(() => ensureEditable(html), [html]);
   const fields = useMemo(() => extractFields(editable), [editable]);
   const root = useMemo(() => getRootStyle(editable), [editable]);
   const htmlRef = useRef(editable);
+  const effectiveBrand = useMemo(
+    () => (brand ? mergeBrandWithPalette(brand, carousel?.palette) : null),
+    [brand, carousel?.palette]
+  );
 
   useEffect(() => {
     htmlRef.current = editable;
@@ -40,9 +62,15 @@ export function DesignPanel({ html, brand, aspectRatio, onChange }: DesignPanelP
     return "value" as LayoutId;
   }, [html]);
 
+  const showHooks =
+    carousel &&
+    (layoutFromHtml === "hook" ||
+      (carousel.hookVariants && carousel.hookVariants.length > 0));
+
   const padding = parseInt(String(root.padding || "80").replace(/px.*/, ""), 10) || 80;
-  const bg = (root.background || "#ffffff").split(" ")[0];
-  const color = root.color || "#1a1a2e";
+  const bg = root.background || "#ffffff";
+  const color =
+    root.color || (isDarkBackground(bg) ? "#ffffff" : "#1a1a2e");
 
   const commit = (next: string) => {
     htmlRef.current = next;
@@ -50,12 +78,22 @@ export function DesignPanel({ html, brand, aspectRatio, onChange }: DesignPanelP
   };
 
   const handleLayout = (next: LayoutId) => {
-    if (!brand) return;
-    commit(restyleHtml(editable, brand, aspectRatio, next));
+    if (!effectiveBrand) return;
+    commit(restyleHtml(editable, effectiveBrand, aspectRatio, next));
   };
 
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-4 text-xs">
+      {showHooks && carousel && (
+        <HookVariantsPanel
+          key={`${carousel.hookVariants?.map((v) => v.id).join("-") || "empty"}-${carousel.activeHookVariantId || ""}`}
+          carousel={carousel}
+          onApplied={(info) => {
+            if (onHookApplied) onHookApplied(info);
+            else onCarouselSaved?.();
+          }}
+        />
+      )}
       <section>
         <p className="text-[10px] font-medium text-muted-foreground mb-1">Layout</p>
         <select
@@ -70,6 +108,15 @@ export function DesignPanel({ html, brand, aspectRatio, onChange }: DesignPanelP
           ))}
         </select>
       </section>
+
+      {carousel && (
+        <BrandLibraryPicker
+          carouselId={carousel.id}
+          slideId={slideId}
+          aspectRatio={aspectRatio}
+          onApplied={() => onCarouselSaved?.()}
+        />
+      )}
 
       <section className="space-y-2">
         <p className="text-[10px] font-medium text-muted-foreground">Lienzo</p>
@@ -140,7 +187,22 @@ function FieldEditor({
   const color = field.style.color || "";
   const align = field.style["text-align"] || "left";
   const timer = useRef<number | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [prevFieldText, setPrevFieldText] = useState(field.text);
   const [text, setText] = useState(field.text);
+
+  if (prevFieldText !== field.text) {
+    setPrevFieldText(field.text);
+    if (!isFocused) {
+      setText(field.text);
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) window.clearTimeout(timer.current);
+    };
+  }, []);
 
   const patch = (next: string) => onChange(next);
 
@@ -148,6 +210,7 @@ function FieldEditor({
     setText(value);
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
+      timer.current = null;
       patch(setFieldText(getHtml(), field.name, value));
     }, 250);
   };
@@ -157,6 +220,8 @@ function FieldEditor({
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{field.name}</p>
       <textarea
         value={text}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onChange={(e) => pushText(e.target.value)}
         rows={field.name === "body" || field.name === "quote" ? 3 : 2}
         className="w-full rounded-md border border-border bg-muted px-2 py-1 resize-none"

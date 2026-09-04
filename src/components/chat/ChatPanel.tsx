@@ -37,8 +37,20 @@ export function ChatPanel({
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+  const streamingRef = useRef(false);
+  const onStreamEndRef = useRef(onStreamEnd);
+  onStreamEndRef.current = onStreamEnd;
 
-  // Load session ID and chat history from localStorage
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+      if (streamingRef.current) onStreamEndRef.current?.();
+    };
+  }, []);
+
   useEffect(() => {
     const storedSession = localStorage.getItem(`chat-session-${carouselId}`);
     if (storedSession) setSessionId(storedSession);
@@ -50,7 +62,6 @@ export function ChatPanel({
     }
   }, [carouselId]);
 
-  // Persist messages to localStorage
   const persistMessages = useCallback(
     (msgs: Message[]) => {
       try {
@@ -73,7 +84,6 @@ export function ChatPanel({
     abortRef.current?.abort();
   }, []);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -85,9 +95,9 @@ export function ChatPanel({
       if (isStreaming) return;
       setError(null);
       setIsStreaming(true);
+      streamingRef.current = true;
       onStreamStart?.();
 
-      // Add user message
       const userMsg: Message = {
         id: crypto.randomUUID(),
         role: "user",
@@ -95,7 +105,6 @@ export function ChatPanel({
       };
       setMessages((prev) => [...prev, userMsg]);
 
-      // Add empty assistant message for streaming
       const assistantId = crypto.randomUUID();
       setMessages((prev) => [
         ...prev,
@@ -119,12 +128,12 @@ export function ChatPanel({
         if (!response.ok) {
           const err = await response.json().catch(() => ({}));
           throw new Error(
-            (err as { error?: string }).error || "Agent Connected to Xooktech"
+            (err as { error?: string }).error || "No se pudo hablar con Cursor"
           );
         }
 
         const reader = response.body?.getReader();
-        if (!reader) throw new Error("No response stream");
+        if (!reader) throw new Error("Sin respuesta del agente");
 
         const decoder = new TextDecoder();
         let accumulated = "";
@@ -152,7 +161,7 @@ export function ChatPanel({
                     )
                   );
                 } else if (data.type === "result" && typeof data.text === "string") {
-                  accumulated = data.text; // result is the final complete text
+                  accumulated = data.text;
                   setMessages((prev) =>
                     prev.map((m) =>
                       m.id === assistantId
@@ -161,17 +170,6 @@ export function ChatPanel({
                     )
                   );
                 }
-              } catch {
-                // skip unparseable
-              }
-            } else if (line.startsWith("event: done")) {
-              // Next line has the done data
-            } else if (
-              line.startsWith("data: ") &&
-              line.includes("sessionId")
-            ) {
-              try {
-                const data = JSON.parse(line.slice(6));
                 if (data.sessionId) {
                   setSessionId(data.sessionId);
                   localStorage.setItem(
@@ -180,13 +178,12 @@ export function ChatPanel({
                   );
                 }
               } catch {
-                // skip
+                // skip unparseable
               }
             }
           }
         }
 
-        // Parse any remaining buffer for the done event
         if (buffer.trim()) {
           for (const line of buffer.split("\n")) {
             if (line.startsWith("data: ")) {
@@ -207,18 +204,18 @@ export function ChatPanel({
         }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") return;
-        const message = err instanceof Error ? err.message : "An unexpected error occurred";
-        setError(message);
-        // Remove empty assistant message on error
+        if (!mountedRef.current) return;
+        const fail =
+          err instanceof Error ? err.message : "Error inesperado";
+        setError(fail);
         setMessages((prev) =>
-          prev.filter(
-            (m) => m.id !== assistantId || m.content.length > 0
-          )
+          prev.filter((m) => m.id !== assistantId || m.content.length > 0)
         );
       } finally {
+        if (!mountedRef.current) return;
+        streamingRef.current = false;
         setIsStreaming(false);
         abortRef.current = null;
-        // Persist messages after stream completes
         setMessages((prev) => {
           persistMessages(prev);
           return prev;
@@ -229,59 +226,21 @@ export function ChatPanel({
     [isStreaming, sessionId, carouselId, onStreamStart, onStreamEnd, persistMessages]
   );
 
-  if (!cursorAvailable) {
-    return (
-      <div className="h-full flex flex-col">
-        <div className="px-4 py-3 border-b border-border">
-          <h2 className="text-sm font-semibold">Cursor</h2>
-          <p className="text-xs text-muted-foreground">
-            Falta <span className="font-mono">CURSOR_API_KEY</span>
-          </p>
-        </div>
-        <ReferenceImages
-          carouselId={carouselId}
-          images={referenceImages}
-          onImagesChange={() => onStreamEnd?.()}
-        />
-        <div className="flex-1 overflow-y-auto">
-          <AgentGuide carouselId={carouselId} />
-          <div className="px-5 pb-5">
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Para el chat embebido, crea una API key en{" "}
-              <a
-                href="https://cursor.com/dashboard/integrations"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-accent underline"
-              >
-                Cursor Dashboard → Integrations
-              </a>
-              , ponla en <span className="font-mono">.env.local</span> como{" "}
-              <span className="font-mono">CURSOR_API_KEY=...</span> y reinicia{" "}
-              <span className="font-mono">pnpm dev</span>. El editor sigue
-              funcionando sin ella.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-border flex items-start justify-between">
+      <div className="px-4 py-3 border-b border-border flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold">Cursor</h2>
+          <h2 className="text-sm font-semibold">Agente</h2>
           <p className="text-xs text-muted-foreground">
-            Chat embebido o <span className="font-mono">pnpm oc</span>
+            Cursor API · <span className="font-mono">pnpm oc</span>
           </p>
         </div>
         {messages.length > 0 && (
           <button
             onClick={handleClearChat}
-            className="text-[10px] text-muted-foreground hover:text-destructive transition-colors px-1.5 py-0.5 rounded"
+            className="text-[10px] text-muted-foreground hover:text-destructive transition-colors px-1.5 py-0.5 rounded shrink-0"
           >
-            Clear
+            Nueva sesión
           </button>
         )}
       </div>
@@ -292,12 +251,33 @@ export function ChatPanel({
         onImagesChange={() => onStreamEnd?.()}
       />
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {messages.length === 0 && (
-          <div className="p-6 text-center text-muted-foreground">
-            <p className="text-sm mb-1">No messages yet</p>
-            <p className="text-xs">
-              Tell me what carousel you&apos;d like to create
+      <AgentGuide carouselId={carouselId} compact={messages.length > 0} />
+
+      {!cursorAvailable && (
+        <div className="px-4 pb-3 text-[11px] text-muted-foreground leading-relaxed">
+          Falta <span className="font-mono">CURSOR_API_KEY</span>. Crea una en{" "}
+          <a
+            href="https://cursor.com/dashboard/integrations"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent underline"
+          >
+            Cursor Dashboard → Integrations
+          </a>
+          , ponla en <span className="font-mono">.env.local</span> y reinicia{" "}
+          <span className="font-mono">pnpm dev</span>. El CLI sigue funcionando
+          sin ella.
+        </div>
+      )}
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
+        {cursorAvailable && messages.length === 0 && (
+          <div className="px-4 py-4 text-muted-foreground">
+            <p className="text-sm text-foreground mb-1">Dime el tema.</p>
+            <p className="text-xs leading-relaxed">
+              Armo el carrusel con el CLI, te doy seguimiento (slides, caption,
+              export) y no cierro hasta el checklist de{" "}
+              <span className="font-mono">docs/publicacion.md</span>.
             </p>
           </div>
         )}
@@ -321,12 +301,14 @@ export function ChatPanel({
         )}
       </div>
 
-      <ChatInput
-        onSend={handleSend}
-        isStreaming={isStreaming}
-        textareaRef={chatInputRef}
-        onStop={handleStopGenerating}
-      />
+      {cursorAvailable && (
+        <ChatInput
+          onSend={handleSend}
+          isStreaming={isStreaming}
+          textareaRef={chatInputRef}
+          onStop={handleStopGenerating}
+        />
+      )}
     </div>
   );
 }

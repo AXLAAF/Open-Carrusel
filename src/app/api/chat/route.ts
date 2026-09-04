@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Agent, CursorAgentError } from "@cursor/sdk";
 import { getCursorApiKey, isCursorAvailable } from "@/lib/cursor-auth";
-import { buildSystemPrompt } from "@/lib/chat-system-prompt";
+import {
+  buildFirstTurnPrompt,
+  buildFollowUpPrompt,
+} from "@/lib/agent-playbook";
 import { getBrand } from "@/lib/brand";
 import { getCarousel } from "@/lib/carousels";
 import { getPreset } from "@/lib/style-presets";
@@ -27,12 +30,14 @@ async function openAgent(apiKey: string, sessionId?: string) {
   const options = agentOptions(apiKey);
   if (sessionId) {
     try {
-      return await Agent.resume(sessionId, options);
+      const agent = await Agent.resume(sessionId, options);
+      return { agent, resumed: true as const };
     } catch (err) {
       console.warn("[chat] resume failed, creating a new agent", err);
     }
   }
-  return Agent.create(options);
+  const agent = await Agent.create(options);
+  return { agent, resumed: false as const };
 }
 
 export async function POST(request: NextRequest) {
@@ -79,7 +84,6 @@ export async function POST(request: NextRequest) {
   const brand = await getBrand();
   const carousel = carouselId ? await getCarousel(carouselId) : null;
   const stylePreset = stylePresetId ? await getPreset(stylePresetId) : null;
-  const systemPrompt = buildSystemPrompt(brand, carousel, stylePreset);
   const apiKey = getCursorApiKey()!;
   const encoder = new TextEncoder();
 
@@ -98,12 +102,20 @@ export async function POST(request: NextRequest) {
       };
 
       try {
-        agent = await openAgent(apiKey, sessionId);
+        const opened = await openAgent(apiKey, sessionId);
+        agent = opened.agent;
         enqueue(
           `data: ${JSON.stringify({ sessionId: agent.agentId })}\n\n`
         );
 
-        const prompt = `${systemPrompt}\n\n---\n\nUser request:\n${message.trim()}`;
+        const prompt = opened.resumed
+          ? buildFollowUpPrompt(carousel, message.trim())
+          : await buildFirstTurnPrompt(
+              brand,
+              carousel,
+              stylePreset,
+              message.trim()
+            );
         const run = await agent.send(prompt, {
           onDelta: ({ update }) => {
             if (

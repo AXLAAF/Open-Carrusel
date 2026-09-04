@@ -1,4 +1,4 @@
-import { createCarousel, addSlide, updateCarousel, getCarousel } from "@/lib/carousels";
+import { createCarousel, addSlide, updateCarousel, getCarousel, deleteCarousel } from "@/lib/carousels";
 import { getBrand } from "@/lib/brand";
 import {
   defaultFields,
@@ -29,25 +29,43 @@ export async function composeCarousel(brief: CarouselBrief): Promise<Carousel> {
   if (!brief.name?.trim()) {
     throw new Error("name is required");
   }
-  const brand = await getBrand();
+  const baseBrand = await getBrand();
+  const brand: BrandConfig = brief.colors
+    ? {
+        ...baseBrand,
+        colors: { ...baseBrand.colors, ...brief.colors },
+      }
+    : baseBrand;
   const ratio = parseRatio(brief.ratio);
   const carousel = await createCarousel(brief.name.trim(), ratio);
-  const specs = slidesFromBrief(brief);
+  try {
+    const specs = slidesFromBrief(brief);
 
-  for (const spec of specs) {
-    if (!isLayoutId(spec.layout)) continue;
-    const html = renderSlideHtml(spec.layout, spec, brand, ratio);
-    await addSlide(carousel.id, html, spec.notes || spec.layout);
+    for (const spec of specs) {
+      if (!isLayoutId(spec.layout)) continue;
+      const html = renderSlideHtml(spec.layout, spec, brand, ratio);
+      await addSlide(carousel.id, html, spec.notes || spec.layout);
+    }
+
+    const captionUpdates: {
+      caption?: string;
+      hashtags?: string[];
+      palette?: typeof brief.colors | null;
+    } = {};
+    if (brief.caption) captionUpdates.caption = brief.caption;
+    if (brief.hashtags?.length) captionUpdates.hashtags = brief.hashtags;
+    if (brief.colors && Object.keys(brief.colors).length) {
+      captionUpdates.palette = brief.colors;
+    }
+    if (Object.keys(captionUpdates).length) {
+      await updateCarousel(carousel.id, captionUpdates);
+    }
+
+    return (await getCarousel(carousel.id)) as Carousel;
+  } catch (err) {
+    await deleteCarousel(carousel.id);
+    throw err;
   }
-
-  const captionUpdates: { caption?: string; hashtags?: string[] } = {};
-  if (brief.caption) captionUpdates.caption = brief.caption;
-  if (brief.hashtags?.length) captionUpdates.hashtags = brief.hashtags;
-  if (Object.keys(captionUpdates).length) {
-    await updateCarousel(carousel.id, captionUpdates);
-  }
-
-  return (await getCarousel(carousel.id)) as Carousel;
 }
 
 export async function addLayoutSlide(

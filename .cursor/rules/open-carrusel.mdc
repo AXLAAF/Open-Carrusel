@@ -9,7 +9,7 @@ This repo is a local Instagram carousel editor (Next.js, localhost:3000).
 
 When the user asks to create or edit carousels, slides, or Instagram ads:
 
-1. Read `.cursor/skills/open-carrusel/SKILL.md` and `.cursor/skills/sn-ppt-standard/SKILL.md`.
+1. Read `.cursor/skills/oc-agent/SKILL.md`, `.cursor/skills/open-carrusel/SKILL.md`, `.cursor/skills/sn-ppt-standard/SKILL.md`, and `docs/publicacion.md`.
 2. Use `pnpm oc --` for create/add/delete/export. Edit `data/slides/<carouselId>/<slideId>.html` for visual design.
 3. Keep the dev server running; the preview polls for file changes.
 4. One idea per slide. Clean editable HTML. No generic AI type, color, or copy.

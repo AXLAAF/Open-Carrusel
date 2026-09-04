@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Check, RotateCcw, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Slide } from "@/types/carousel";
@@ -10,6 +10,7 @@ interface SlideInspectorProps {
   slide: Slide | null;
   slideIndex: number;
   onSaved: () => void;
+  onHtmlChange?: (html: string) => void;
 }
 
 export function SlideInspector({
@@ -17,6 +18,7 @@ export function SlideInspector({
   slide,
   slideIndex,
   onSaved,
+  onHtmlChange,
 }: SlideInspectorProps) {
   const [html, setHtml] = useState(slide?.html ?? "");
   const [notes, setNotes] = useState(slide?.notes ?? "");
@@ -41,7 +43,7 @@ export function SlideInspector({
   const dirty =
     !!slide && (html !== slide.html || notes !== (slide.notes ?? ""));
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!slide || !dirty) return;
     setSaving(true);
     setError(null);
@@ -67,7 +69,7 @@ export function SlideInspector({
     } finally {
       setSaving(false);
     }
-  };
+  }, [slide, dirty, carouselId, html, notes, onSaved]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -78,7 +80,7 @@ export function SlideInspector({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+  }, [handleSave]);
 
   if (!slide) {
     return (
@@ -125,6 +127,7 @@ export function SlideInspector({
         onChange={(e) => {
           touched.current = true;
           setHtml(e.target.value);
+          onHtmlChange?.(e.target.value);
         }}
         spellCheck={false}
         className="flex-1 min-h-0 mx-3 mb-2 rounded-md border border-border bg-[#0f0f12] text-[#e8e8ed] font-mono text-[11px] leading-relaxed p-2 resize-none focus:outline-none focus:ring-2 focus:ring-ring"

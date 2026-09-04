@@ -8,6 +8,8 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { LAYOUT_IDS, renderLayout, slidesFromBrief, isLayoutId } from "./layouts.mjs";
+import { parseBriefMarkdown } from "./brief-md.mjs";
+import { formatReviewReport, reviewCarousel } from "./slide-review.mjs";
 
 let cli = null;
 
@@ -18,6 +20,7 @@ export function bindCli(helpers) {
 export async function dispatchStudio(cmd, http) {
   switch (cmd) {
     case "compose":
+    case "make":
       return cmdCompose(http);
     case "templates":
       return cmdTemplates(http);
@@ -31,6 +34,20 @@ export async function dispatchStudio(cmd, http) {
       return cmdDoctor();
     case "layouts":
       return cmdLayouts();
+    case "playbook":
+      return cmdPlaybook();
+    case "palette":
+      return cmdPalette(http);
+    case "hook":
+      return cmdHook(http);
+    case "schedule":
+      return cmdSchedule(http);
+    case "library":
+      return cmdLibrary(http);
+    case "review":
+      return cmdReview(http);
+    case "import":
+      return cmdImport(http);
     default:
       return false;
   }
@@ -124,11 +141,23 @@ export async function addSlideFromLayout(http, carouselId) {
 async function cmdCompose(http) {
   let brief = {};
   const peek = cli.args[0];
-  if (peek && !peek.startsWith("--") && peek.endsWith(".json")) {
-    const fileArg = cli.args.shift();
-    const abs = path.isAbsolute(fileArg) ? fileArg : path.resolve(process.cwd(), fileArg);
-    if (!existsSync(abs)) cli.die(`brief not found: ${abs}`);
-    brief = JSON.parse(await readFile(abs, "utf-8"));
+  if (peek && !peek.startsWith("--")) {
+    const lower = peek.toLowerCase();
+    if (
+      lower.endsWith(".json") ||
+      lower.endsWith(".md") ||
+      lower.endsWith(".markdown")
+    ) {
+      const fileArg = cli.args.shift();
+      const abs = path.isAbsolute(fileArg)
+        ? fileArg
+        : path.resolve(process.cwd(), fileArg);
+      if (!existsSync(abs)) cli.die(`brief not found: ${abs}`);
+      const raw = await readFile(abs, "utf-8");
+      brief = lower.endsWith(".json")
+        ? JSON.parse(raw)
+        : parseBriefMarkdown(raw);
+    }
   }
 
   const name = cli.takeOpt("name") || brief.name;
@@ -147,7 +176,17 @@ async function cmdCompose(http) {
   if (tags) {
     brief.hashtags = tags.split(/[,\s]+/).map((t) => t.replace(/^#/, "").trim()).filter(Boolean);
   }
-  if (!brief.name) cli.die('compose requires a name (brief.json or --name "...")');
+  const colorPatch = {};
+  for (const key of ["primary", "secondary", "accent", "background", "surface", "text"]) {
+    const val = cli.takeOpt(key);
+    if (val != null) colorPatch[key] = val;
+  }
+  if (Object.keys(colorPatch).length) {
+    brief.colors = { ...(brief.colors || {}), ...colorPatch };
+  }
+  if (!brief.name) {
+    cli.die('compose requires a name (brief.md / brief.json or --name "...")');
+  }
 
   if (http) {
     const created = await cli.api("POST", "/api/carousels/compose", brief);
@@ -159,7 +198,10 @@ async function cmdCompose(http) {
     return;
   }
 
-  const brand = await loadBrand(false);
+  const baseBrand = await loadBrand(false);
+  const brand = brief.colors
+    ? { ...baseBrand, colors: { ...(baseBrand.colors || {}), ...brief.colors } }
+    : baseBrand;
   const store = await cli.loadStore();
   const carousel = {
     id: cli.randomUUID(),
@@ -208,7 +250,7 @@ async function cmdBrandSet(http) {
     patch.styleKeywords = keywords.split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
   }
   const colors = {};
-  for (const key of ["primary", "secondary", "accent", "background", "surface"]) {
+  for (const key of ["primary", "secondary", "accent", "background", "surface", "text"]) {
     const val = cli.takeOpt(key);
     if (val != null) colors[key] = val;
   }
@@ -218,7 +260,7 @@ async function cmdBrandSet(http) {
   if (body != null) fonts.body = body;
   if (Object.keys(fonts).length) patch.fonts = fonts;
   if (Object.keys(patch).length === 0) {
-    cli.die("brand set --name --primary --accent --background --heading --body --logo --keywords");
+    cli.die("brand set --name --primary --accent --background --text --heading --body --logo --keywords");
   }
   if (!http) cli.die("brand set requires the running app (npm run dev)");
   const updated = await cli.api("PUT", "/api/brand", patch);
@@ -318,6 +360,309 @@ async function cmdDuplicate(http) {
   if (!http) cli.die("duplicate requires the running app (npm run dev)");
   const copy = await cli.api("POST", `/api/carousels/${id}/duplicate`);
   cli.print(copy, `Duplicated → ${copy.id}\nEditor: ${cli.BASE}/carousel/${copy.id}`);
+}
+
+async function cmdPlaybook() {
+  const fileArg =
+    cli.args[0] && !cli.args[0].startsWith("--")
+      ? cli.args.shift()
+      : "docs/publicacion.md";
+  const abs = path.isAbsolute(fileArg)
+    ? fileArg
+    : path.resolve(cli.ROOT, fileArg);
+  if (!existsSync(abs)) cli.die(`playbook not found: ${abs}`);
+  const text = await readFile(abs, "utf-8");
+  cli.print({ file: abs, markdown: text }, text);
+}
+
+async function cmdPalette(http) {
+  if (!http) cli.die("palette requires the running app (npm run dev)");
+  const id = cli.args.shift();
+  if (!id) cli.die("palette <carouselId> [--primary] [--accent] [--background] [--text] | palette clear <id>");
+  if (id === "clear") {
+    const carouselId = cli.args.shift();
+    if (!carouselId) cli.die("palette clear <carouselId>");
+    const cleared = await cli.api("PUT", `/api/carousels/${carouselId}/palette`, {
+      palette: null,
+      apply: true,
+    });
+    cli.print(cleared, `Palette cleared on ${carouselId} (using global brand)`);
+    return;
+  }
+  const patch = {};
+  for (const key of ["primary", "secondary", "accent", "background", "surface", "text"]) {
+    const val = cli.takeOpt(key);
+    if (val != null) patch[key] = val;
+  }
+  if (Object.keys(patch).length === 0) {
+    const current = await cli.api("GET", `/api/carousels/${id}/palette`);
+    cli.print(
+      current,
+      current.palette
+        ? `Palette for ${id}:\n${JSON.stringify(current.palette, null, 2)}\nEffective: ${JSON.stringify(current.effective, null, 2)}`
+        : `No carousel palette on ${id} (using global brand)\nEffective: ${JSON.stringify(current.effective, null, 2)}`
+    );
+    return;
+  }
+  const updated = await cli.api("PUT", `/api/carousels/${id}/palette`, {
+    palette: patch,
+    apply: true,
+  });
+  cli.print(
+    updated,
+    `Palette saved on ${id} · restyled ${updated.restyled ?? 0} slides`
+  );
+}
+
+async function cmdHook(http) {
+  if (!http) cli.die("hook requires the running app (npm run dev)");
+  const sub = cli.args.shift();
+  if (sub === "variants" || sub === "generate") {
+    const id = cli.args.shift();
+    if (!id) cli.die("hook variants <carouselId> [--title \"...\"]");
+    const title = cli.takeOpt("title");
+    const body = cli.takeOpt("body");
+    const titlesRaw = cli.takeOpt("titles");
+    const payload = {};
+    if (title) payload.title = title;
+    if (body) payload.body = body;
+    if (titlesRaw) {
+      payload.titles = titlesRaw.split("|").map((s) => s.trim()).filter(Boolean);
+    }
+    const data = await cli.api("POST", `/api/carousels/${id}/hooks`, payload);
+    const lines = (data.variants || [])
+      .map(
+        (v, i) =>
+          `${i + 1}. [${v.style}] ${v.title}${v.body ? ` — ${v.body}` : ""}`
+      )
+      .join("\n");
+    cli.print(
+      data,
+      `3 hook variants saved on ${id}:\n${lines}\n\nPick (persists; switch anytime):\n  pnpm oc -- hook pick ${id} 1`
+    );
+    return;
+  }
+  if (sub === "pick") {
+    const id = cli.args.shift();
+    const which = cli.args.shift();
+    if (!id || !which) cli.die("hook pick <carouselId> <1|2|3>");
+    const index = Number(which) - 1;
+    if (![0, 1, 2].includes(index)) cli.die("hook pick index must be 1, 2, or 3");
+    const data = await cli.api("PUT", `/api/carousels/${id}/hooks`, { index });
+    cli.print(
+      data,
+      `Picked hook: ${data.picked?.title || which}\nApplied to slide ${data.slideId}\nVariants kept — switch anytime with: pnpm oc -- hook pick ${id} 1|2|3`
+    );
+    return;
+  }
+  cli.die("hook <variants|pick> …");
+}
+
+async function cmdSchedule(http) {
+  if (!http) cli.die("schedule requires the running app (npm run dev)");
+  const sub = cli.args[0];
+  if (!sub || sub === "list") {
+    if (sub === "list") cli.args.shift();
+    const data = await cli.api("GET", "/api/schedule");
+    const lines = (data.queue || [])
+      .map((q) => {
+        const when = q.scheduledAt
+          ? new Date(q.scheduledAt).toLocaleString()
+          : "—";
+        const mark = q.ready ? "✓" : "○";
+        return `${mark} ${q.id}  ${q.publishStatus.padEnd(10)}  ${when}  ${q.name}`;
+      })
+      .join("\n");
+    cli.print(
+      data,
+      lines
+        ? `Cola de publicación\n${lines}`
+        : "Cola vacía — completa caption + export y programa una fecha"
+    );
+    return;
+  }
+  if (sub === "clear") {
+    cli.args.shift();
+    const id = cli.args.shift();
+    if (!id) cli.die("schedule clear <carouselId>");
+    const data = await cli.api("PUT", "/api/schedule", {
+      carouselId: id,
+      clear: true,
+    });
+    cli.print(data, `Schedule cleared on ${id}`);
+    return;
+  }
+  if (sub === "status") {
+    cli.args.shift();
+    const id = cli.args.shift();
+    const status = cli.args.shift();
+    if (!id || !status) {
+      cli.die("schedule status <carouselId> <draft|ready|scheduled|published>");
+    }
+    const data = await cli.api("PUT", "/api/schedule", {
+      carouselId: id,
+      publishStatus: status,
+    });
+    cli.print(data, `Status → ${status} on ${id}`);
+    return;
+  }
+  // schedule <id> --at ISO|local
+  const id = cli.args.shift();
+  const at = cli.takeOpt("at") || cli.takeOpt("when");
+  if (!id || !at) {
+    cli.die(
+      'schedule list | schedule <id> --at "2026-08-20T18:00" | schedule clear <id> | schedule status <id> ready'
+    );
+  }
+  const scheduledAt = new Date(at).toISOString();
+  if (Number.isNaN(Date.parse(scheduledAt))) cli.die(`invalid --at date: ${at}`);
+  const data = await cli.api("PUT", "/api/schedule", {
+    carouselId: id,
+    scheduledAt,
+  });
+  cli.print(
+    data,
+    `Scheduled ${id} → ${new Date(scheduledAt).toLocaleString()}`
+  );
+}
+
+async function cmdLibrary(http) {
+  if (!http) cli.die("library requires the running app (npm run dev)");
+  const sub = cli.args.shift() || "list";
+  if (sub === "list") {
+    const data = await cli.api("GET", "/api/layout-library");
+    const lines = (data.layouts || [])
+      .map((l) => `${l.id.padEnd(28)}  ${l.layout.padEnd(8)}  ${l.aspectRatio}  ${l.name}`)
+      .join("\n");
+    cli.print(data, lines || "Biblioteca vacía");
+    return;
+  }
+  if (sub === "reseed") {
+    const data = await cli.api("GET", "/api/layout-library?reseed=1");
+    cli.print(
+      data,
+      `Reseeded ${(data.layouts || []).length} XookTech layouts`
+    );
+    return;
+  }
+  if (sub === "apply") {
+    const layoutId = cli.args.shift();
+    const carouselId = cli.args.shift();
+    if (!layoutId || !carouselId) {
+      cli.die("library apply <layoutId> <carouselId> [--slide id] [--add]");
+    }
+    const slideId = cli.takeOpt("slide");
+    const add = cli.takeFlag("add");
+    const data = await cli.api("POST", "/api/layout-library", {
+      layoutId,
+      carouselId,
+      slideId: add ? undefined : slideId,
+      mode: add || !slideId ? "add" : "replace",
+    });
+    cli.print(
+      data,
+      add || !slideId
+        ? `Added layout ${layoutId} as new slide on ${carouselId}`
+        : `Applied layout ${layoutId} to slide ${slideId}`
+    );
+    return;
+  }
+  cli.die("library list | library apply <layoutId> <carouselId> [--slide id|--add] | library reseed");
+}
+
+async function cmdReview(http) {
+  const id = cli.args.shift();
+  if (!id) cli.die("review <carouselId>");
+  if (http) {
+    const data = await cli.api("GET", `/api/carousels/${id}/review`);
+    cli.print(data, data.report || formatReviewReport(data));
+    return;
+  }
+  const store = await cli.loadStore();
+  const carousel = store.carousels.find((c) => c.id === id);
+  if (!carousel) cli.die(`carousel not found: ${id}`);
+  // hydrate html from files
+  const slides = [];
+  for (const s of carousel.slides || []) {
+    const file = cli.slideFile(id, s.id);
+    let html = s.html;
+    if (existsSync(file)) html = await readFile(file, "utf-8");
+    slides.push({ ...s, html });
+  }
+  const result = reviewCarousel({ ...carousel, slides });
+  cli.print(result, formatReviewReport(result));
+}
+
+async function cmdImport(http) {
+  if (!http) cli.die("import requires the running app (npm run dev)");
+  const compose = cli.takeFlag("compose");
+  const out = cli.takeOpt("out");
+  const textOpt = cli.takeOpt("text");
+  const peek = cli.args[0];
+
+  let data;
+  if (textOpt != null) {
+    data = await cli.api("POST", "/api/import", {
+      text: textOpt,
+      compose,
+      name: cli.takeOpt("name"),
+      ratio: cli.takeOpt("ratio"),
+    });
+  } else if (peek && /\.pdf$/i.test(peek)) {
+    cli.args.shift();
+    const abs = path.isAbsolute(peek) ? peek : path.resolve(process.cwd(), peek);
+    if (!existsSync(abs)) cli.die(`PDF not found: ${abs}`);
+    const buf = await readFile(abs);
+    const FormData = (await import("node:buffer")).Blob
+      ? globalThis.FormData
+      : null;
+    // Use fetch multipart via undici/native FormData
+    const form = new FormData();
+    form.append(
+      "file",
+      new Blob([buf], { type: "application/pdf" }),
+      path.basename(abs)
+    );
+    form.append("compose", compose ? "true" : "false");
+    const name = cli.takeOpt("name");
+    if (name) form.append("name", name);
+    const ratio = cli.takeOpt("ratio");
+    if (ratio) form.append("ratio", ratio);
+    const res = await fetch(`${process.env.OC_API || "http://localhost:3000"}/api/import`, {
+      method: "POST",
+      body: form,
+    });
+    data = await res.json();
+    if (!res.ok) cli.die(data.error || `import failed (${res.status})`);
+  } else if (peek && /^https?:\/\//i.test(peek)) {
+    cli.args.shift();
+    data = await cli.api("POST", "/api/import", {
+      url: peek,
+      compose,
+      name: cli.takeOpt("name"),
+      ratio: cli.takeOpt("ratio"),
+    });
+  } else {
+    cli.die(
+      'import <url|file.pdf> [--compose] [--out brief.md]\nimport --text "..." [--compose]'
+    );
+  }
+
+  if (out && data.markdown) {
+    const abs = path.isAbsolute(out) ? out : path.resolve(process.cwd(), out);
+    await writeFile(abs, data.markdown, "utf-8");
+  }
+
+  const lines = [
+    `Import ${data.kind} ← ${data.source}`,
+    data.briefPath ? `Brief: ${data.briefPath}` : null,
+    out ? `Copied to: ${out}` : null,
+    data.carousel?.id
+      ? `Carousel: ${data.carousel.id} — http://localhost:3000/carousel/${data.carousel.id}`
+      : "Use --compose to create the carousel, or:\n  pnpm oc -- compose " +
+        (data.briefPath || "data/briefs/….md"),
+  ].filter(Boolean);
+  cli.print(data, lines.join("\n"));
 }
 
 function cmdLayouts() {

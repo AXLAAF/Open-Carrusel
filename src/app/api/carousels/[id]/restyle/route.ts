@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCarousel, updateSlide } from "@/lib/carousels";
-import { getBrand } from "@/lib/brand";
+import { brandForCarousel } from "@/lib/brand-resolve";
 import { restyleHtml } from "@/lib/slide-fields";
 import { isLayoutId } from "@/types/layout";
 
@@ -22,7 +22,7 @@ export async function POST(
     layout = undefined;
   }
 
-  const brand = await getBrand();
+  const brand = await brandForCarousel(carousel);
   let count = 0;
   for (const slide of carousel.slides) {
     const html = restyleHtml(

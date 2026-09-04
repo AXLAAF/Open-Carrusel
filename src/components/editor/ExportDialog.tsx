@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -18,14 +18,22 @@ export function ExportDialog({ carouselId, slideCount, activeSlideId }: ExportDi
   const [format, setFormat] = useState<"png" | "jpg">("png");
   const [quality, setQuality] = useState(90);
   const [naming, setNaming] = useState<"index" | "id" | "name">("index");
+  const doneTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (doneTimer.current) window.clearTimeout(doneTimer.current);
+    };
+  }, []);
 
   const handleExport = async () => {
     if (exporting || slideCount === 0) return;
+    if (scope === "current" && !activeSlideId) return;
     setExporting(true);
     setDone(false);
     try {
       const body: Record<string, unknown> = { format, quality, naming };
-      if (scope === "current" && activeSlideId) body.slideIds = [activeSlideId];
+      if (scope === "current") body.slideIds = [activeSlideId];
       const response = await fetch(`/api/carousels/${carouselId}/export`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -46,7 +54,8 @@ export function ExportDialog({ carouselId, slideCount, activeSlideId }: ExportDi
       console.error("Export error:", error);
     } finally {
       setExporting(false);
-      setTimeout(() => setDone(false), 3000);
+      if (doneTimer.current) window.clearTimeout(doneTimer.current);
+      doneTimer.current = window.setTimeout(() => setDone(false), 3000);
     }
   };
 
@@ -87,7 +96,9 @@ export function ExportDialog({ carouselId, slideCount, activeSlideId }: ExportDi
               className="h-7 rounded-md border border-border bg-muted px-1"
             >
               <option value="all">Todas</option>
-              <option value="current">Esta diapositiva</option>
+              <option value="current" disabled={!activeSlideId}>
+                Esta diapositiva
+              </option>
             </select>
           </label>
           <label className="flex items-center justify-between">
@@ -124,9 +135,18 @@ export function ExportDialog({ carouselId, slideCount, activeSlideId }: ExportDi
               <option value="id">id</option>
             </select>
           </label>
-          <Button size="sm" variant="accent" className="w-full" onClick={handleExport} disabled={exporting}>
+          <Button
+            size="sm"
+            variant="accent"
+            className="w-full"
+            onClick={handleExport}
+            disabled={exporting || (scope === "current" && !activeSlideId)}
+          >
             Descargar
           </Button>
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            Feed 1:1 recorta el centro de un 4:5. Revisa zonas seguras antes de exportar.
+          </p>
         </div>
       )}
     </div>

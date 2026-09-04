@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { wrapSlideHtml, extractFontFamilies } from "./slide-html";
 import { getInlinedFontCSS } from "./fonts";
 import { getInlinedLocalFontCSS } from "./local-fonts";
+import { resolveInside } from "./safe-path";
 import type { Slide, AspectRatio } from "@/types/carousel";
 import { DIMENSIONS } from "@/types/carousel";
 
@@ -39,8 +40,23 @@ function scheduleIdleClose() {
     browser = null;
     exportCount = 0;
     idleTimer = null;
-    current?.close().catch(() => {});
+    current?.close().catch((err) => {
+      console.error("Failed to close idle Puppeteer browser", err);
+    });
   }, IDLE_CLOSE_MS);
+}
+
+// Ensure Puppeteer browser is closed on process termination
+if (typeof process !== "undefined") {
+  const cleanup = () => {
+    if (browser) {
+      browser.close().catch(() => {});
+      browser = null;
+    }
+  };
+  process.once("exit", cleanup);
+  process.once("SIGINT", cleanup);
+  process.once("SIGTERM", cleanup);
 }
 
 async function getBrowser(): Promise<Browser> {
@@ -53,7 +69,14 @@ async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
     browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-zygote",
+      ],
     });
     exportCount = 0;
   }
@@ -65,15 +88,17 @@ async function getBrowser(): Promise<Browser> {
  * Replaces /uploads/xxx.png paths with data: URIs.
  */
 async function inlineImages(html: string): Promise<string> {
-  const uploadDir = path.resolve(process.cwd(), "public");
+  const uploadsRoot = path.resolve(process.cwd(), "public", "uploads");
   const imgRegex = /(?:src=["']|url\(["']?)(\/uploads\/[^"'\s)]+)/g;
   const matches = [...html.matchAll(imgRegex)];
 
   let result = html;
   for (const match of matches) {
     const imgPath = match[1];
+    const rel = imgPath.replace(/^\/uploads\/+/, "");
+    const fullPath = resolveInside(uploadsRoot, rel);
+    if (!fullPath) continue;
     try {
-      const fullPath = path.join(uploadDir, imgPath);
       const buffer = await readFile(fullPath);
       const ext = path.extname(imgPath).toLowerCase();
       const mime =

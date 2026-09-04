@@ -1,7 +1,14 @@
 import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { resolveInside } from "./safe-path";
 
 const FONT_CACHE_DIR = path.resolve(process.cwd(), "data", ".font-cache");
+
+function fontCachePath(family: string): string | null {
+  const safe = family.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+  if (!safe) return null;
+  return resolveInside(FONT_CACHE_DIR, `${safe}.css`);
+}
 
 // In-memory cache (survives across requests, lost on restart)
 const memoryCache = new Map<string, string>();
@@ -46,10 +53,8 @@ async function getCachedFont(family: string): Promise<string | null> {
 
   // Check disk
   try {
-    const diskPath = path.join(
-      FONT_CACHE_DIR,
-      `${family.replace(/\s/g, "-")}.css`
-    );
+    const diskPath = fontCachePath(family);
+    if (!diskPath) return null;
     const css = await readFile(diskPath, "utf-8");
     memoryCache.set(family, css);
     return css;
@@ -62,10 +67,8 @@ async function cacheFont(family: string, css: string): Promise<void> {
   memoryCache.set(family, css);
   try {
     await mkdir(FONT_CACHE_DIR, { recursive: true });
-    const diskPath = path.join(
-      FONT_CACHE_DIR,
-      `${family.replace(/\s/g, "-")}.css`
-    );
+    const diskPath = fontCachePath(family);
+    if (!diskPath) return;
     await writeFile(diskPath, css, "utf-8");
   } catch {
     // Disk cache write failed — not critical

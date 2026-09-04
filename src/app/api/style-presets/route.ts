@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, description, brand, designRules, exampleSlideHtml, aspectRatio, tags } = body;
 
-    if (!name || !designRules) {
+    if (!name || typeof name !== "string" || !designRules || typeof designRules !== "object") {
       return NextResponse.json(
         { error: "name and designRules are required" },
         { status: 400 }

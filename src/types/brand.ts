@@ -4,6 +4,8 @@ export interface BrandColors {
   accent: string;
   background: string;
   surface: string;
+  /** Explicit slide text color. If omitted, contrast vs background decides (white on dark). */
+  text?: string;
 }
 
 export interface BrandFonts {

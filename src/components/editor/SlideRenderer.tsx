@@ -11,6 +11,8 @@ interface SlideRendererProps {
   className?: string;
   style?: React.CSSProperties;
   zoom?: number;
+  editable?: boolean;
+  onHtmlChange?: (html: string) => void;
 }
 
 export function SlideRenderer({
@@ -19,8 +21,16 @@ export function SlideRenderer({
   className,
   style,
   zoom = 1,
+  editable = false,
+  onHtmlChange,
 }: SlideRendererProps) {
   const outerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const editingRef = useRef(false);
+  const onHtmlChangeRef = useRef(onHtmlChange);
+  useEffect(() => {
+    onHtmlChangeRef.current = onHtmlChange;
+  }, [onHtmlChange]);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const { width: slideW, height: slideH } = DIMENSIONS[aspectRatio];
 
@@ -29,6 +39,17 @@ export function SlideRenderer({
       typeof window !== "undefined" ? window.location.origin : undefined;
     return wrapSlideHtml(html, aspectRatio, { assetOrigin: origin });
   }, [html, aspectRatio]);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [prevSrcDoc, setPrevSrcDoc] = useState(srcDoc);
+  const [appliedSrc, setAppliedSrc] = useState(srcDoc);
+
+  if (prevSrcDoc !== srcDoc) {
+    setPrevSrcDoc(srcDoc);
+    if (!isEditing) {
+      setAppliedSrc(srcDoc);
+    }
+  }
 
   const measure = useCallback(() => {
     const el = outerRef.current;
@@ -86,9 +107,38 @@ export function SlideRenderer({
           }}
         >
           <iframe
-            sandbox=""
-            srcDoc={srcDoc}
+            ref={iframeRef}
+            sandbox="allow-same-origin"
+            srcDoc={appliedSrc}
             title="Slide preview"
+            onLoad={() => {
+              const doc = iframeRef.current?.contentDocument;
+              if (!doc || !editable) return;
+              const styleEl = doc.createElement("style");
+              styleEl.textContent =
+                '[data-oc-field]{cursor:text;}[data-oc-field]:focus{outline:2px dashed #e94560;outline-offset:4px;}';
+              doc.head.appendChild(styleEl);
+              doc.querySelectorAll<HTMLElement>("[data-oc-field]").forEach((el) => {
+                if (el.tagName === "IMG") return;
+                if (el.getAttribute("data-oc-hidden") === "true") return;
+                el.contentEditable = "true";
+                el.spellcheck = false;
+                el.addEventListener("focus", () => {
+                  editingRef.current = true;
+                  setIsEditing(true);
+                });
+                el.addEventListener("blur", () => {
+                  editingRef.current = false;
+                  setIsEditing(false);
+                  setAppliedSrc(srcDoc);
+                });
+                el.addEventListener("input", () => {
+                  editingRef.current = true;
+                  setIsEditing(true);
+                  onHtmlChangeRef.current?.(doc.body.innerHTML.trim());
+                });
+              });
+            }}
             style={{
               width: slideW,
               height: slideH,
@@ -98,7 +148,7 @@ export function SlideRenderer({
               position: "absolute",
               top: 0,
               left: 0,
-              pointerEvents: "none",
+              pointerEvents: editable ? "auto" : "none",
             }}
           />
         </div>

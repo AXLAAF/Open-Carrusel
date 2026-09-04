@@ -56,4 +56,13 @@ export interface CarouselBrief {
   kicker?: string;
   footer?: string;
   slides?: SlideSpec[];
+  /** One-shot palette for this compose (does not rewrite brand.json). */
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    background?: string;
+    surface?: string;
+    text?: string;
+  };
 }

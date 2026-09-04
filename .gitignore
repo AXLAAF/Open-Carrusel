@@ -29,6 +29,7 @@ package-lock.json
 /data/
 /public/uploads/
 .tmp-slides/
+chrome/
 
 # debug
 npm-debug.log*

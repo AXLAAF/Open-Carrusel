@@ -99,14 +99,20 @@ function seedDataFiles() {
   }
 }
 
+function getPackageManager() {
+  const check = crossSpawn.sync("pnpm", ["--version"], { stdio: "ignore" });
+  return check.status === 0 ? "pnpm" : "npm";
+}
+
 async function main() {
   log("Setting up Open Carrusel...");
   log("");
 
+  const pm = getPackageManager();
   log(
-    "Installing dependencies (first run may download Chromium ~300MB for PNG export)..."
+    `Installing dependencies using ${pm} (first run may download Chromium ~300MB for PNG export)...`
   );
-  runSync("pnpm", ["install"]);
+  runSync(pm, ["install"]);
   log("");
 
   log("Creating data directories...");
@@ -121,7 +127,7 @@ async function main() {
     log("  CURSOR_API_KEY is empty.");
     log("  In-app chat needs a key from https://cursor.com/dashboard/integrations");
     log("  Set CURSOR_API_KEY in .env.local, then restart the dev server.");
-    log("  The editor and `pnpm oc` still work without it.");
+    log("  The editor and CLI still work without it.");
   }
   log("");
 
@@ -133,7 +139,7 @@ async function main() {
   log("Starting Open Carrusel...");
   log("  Open http://localhost:3000 in your browser");
   log("");
-  runSync("pnpm", ["dev"]);
+  runSync(pm, ["run", "dev"]);
 }
 
 main().catch((err) => {

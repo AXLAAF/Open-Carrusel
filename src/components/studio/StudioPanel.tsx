@@ -8,6 +8,7 @@ import {
   History,
   Share2,
   Code2,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DesignPanel } from "./DesignPanel";
@@ -16,8 +17,9 @@ import { BrandStudioPanel } from "./BrandStudioPanel";
 import { MediaPanel } from "./MediaPanel";
 import { HistoryPanel } from "./HistoryPanel";
 import { PublishPanel } from "./PublishPanel";
+import { ReviewPanel } from "./ReviewPanel";
 import { SlideInspector } from "@/components/editor/SlideInspector";
-import { setRootStyle } from "@/lib/slide-fields";
+import { setRootStyle, insertImage } from "@/lib/slide-fields";
 import type { Carousel, Slide } from "@/types/carousel";
 import type { BrandConfig } from "@/types/brand";
 
@@ -27,6 +29,7 @@ export type StudioTab =
   | "brand"
   | "media"
   | "history"
+  | "review"
   | "publish"
   | "html";
 
@@ -36,8 +39,9 @@ const TABS: { id: StudioTab; label: string; icon: typeof Type }[] = [
   { id: "brand", label: "Marca", icon: Palette },
   { id: "media", label: "Medios", icon: ImageIcon },
   { id: "history", label: "Historial", icon: History },
+  { id: "review", label: "Revisión", icon: ClipboardCheck },
   { id: "publish", label: "Publicar", icon: Share2 },
-  { id: "html", label: "HTML", icon: Code2 },
+  { id: "html", label: "Código", icon: Code2 },
 ];
 
 interface StudioPanelProps {
@@ -50,12 +54,15 @@ interface StudioPanelProps {
   brand: BrandConfig | null;
   onHtmlChange: (html: string) => void;
   onSaved: () => void;
+  /** Hook A/B generate/pick — must refresh even if a local draft is open. */
+  onHookApplied?: (info?: { slideId?: string }) => void;
   onBrandSaved: (brand: BrandConfig) => void;
   onRestyle: () => void;
   onRestore: (html: string) => void;
   onFullscreen: () => void;
   showSafeZones: boolean;
   onToggleSafeZones: () => void;
+  onJumpSlide?: (slideId: string) => void;
 }
 
 export function StudioPanel({
@@ -68,12 +75,14 @@ export function StudioPanel({
   brand,
   onHtmlChange,
   onSaved,
+  onHookApplied,
   onBrandSaved,
   onRestyle,
   onRestore,
   onFullscreen,
   showSafeZones,
   onToggleSafeZones,
+  onJumpSlide,
 }: StudioPanelProps) {
   return (
     <div className="h-full flex min-h-0">
@@ -107,12 +116,21 @@ export function StudioPanel({
             html={html}
             brand={brand}
             aspectRatio={carousel.aspectRatio}
+            carousel={carousel}
+            slideId={slide?.id}
             onChange={onHtmlChange}
+            onCarouselSaved={onSaved}
+            onHookApplied={onHookApplied}
           />
         )}
         {tab === "layers" && <LayersPanel html={html} onChange={onHtmlChange} />}
         {tab === "brand" && (
-          <BrandStudioPanel onBrandSaved={onBrandSaved} onRestyle={onRestyle} />
+          <BrandStudioPanel
+            carousel={carousel}
+            onBrandSaved={onBrandSaved}
+            onRestyle={onRestyle}
+            onCarouselSaved={onSaved}
+          />
         )}
         {tab === "media" && (
           <MediaPanel
@@ -125,15 +143,20 @@ export function StudioPanel({
                 })
               )
             }
+            onInsert={(url) => onHtmlChange(insertImage(html, url))}
           />
         )}
         {tab === "history" && <HistoryPanel slide={slide} onRestore={onRestore} />}
+        {tab === "review" && (
+          <ReviewPanel carouselId={carousel.id} onJumpSlide={onJumpSlide} />
+        )}
         {tab === "publish" && (
           <PublishPanel
             carousel={carousel}
             onFullscreen={onFullscreen}
             showSafeZones={showSafeZones}
             onToggleSafeZones={onToggleSafeZones}
+            onSaved={onSaved}
           />
         )}
         {tab === "html" && (
@@ -142,6 +165,7 @@ export function StudioPanel({
             slide={slide}
             slideIndex={slideIndex}
             onSaved={onSaved}
+            onHtmlChange={onHtmlChange}
           />
         )}
       </div>

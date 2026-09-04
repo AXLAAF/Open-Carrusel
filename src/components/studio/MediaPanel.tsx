@@ -12,9 +12,10 @@ interface MediaFile {
 
 interface MediaPanelProps {
   onUseBackground?: (url: string) => void;
+  onInsert?: (url: string) => void;
 }
 
-export function MediaPanel({ onUseBackground }: MediaPanelProps) {
+export function MediaPanel({ onUseBackground, onInsert }: MediaPanelProps) {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -84,6 +85,17 @@ export function MediaPanel({ onUseBackground }: MediaPanelProps) {
                 >
                   {copied === file.url ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 </Button>
+                {onInsert && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-1.5 flex-1"
+                    onClick={() => onInsert(file.url)}
+                  >
+                    Insertar
+                  </Button>
+                )}
                 {onUseBackground && (
                   <Button
                     type="button"

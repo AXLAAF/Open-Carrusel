@@ -13,11 +13,9 @@ interface ChatInputProps {
 }
 
 const SUGGESTIONS = [
-  "Create a 5-slide carousel about...",
-  "Make the design more minimal",
-  "Change the accent color to blue",
-  "Add a call-to-action slide",
-  "Make the headings bigger",
+  "Arma un carrusel de 6 slides sobre…",
+  "Escribe caption y hashtags",
+  "Exporta en PNG y dime qué falta",
 ];
 
 export function ChatInput({ onSend, isStreaming, disabled, textareaRef: externalRef, onStop }: ChatInputProps) {
@@ -73,19 +71,19 @@ export function ChatInput({ onSend, isStreaming, disabled, textareaRef: external
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           placeholder={
-            isStreaming ? "AI is working..." : "Describe your carousel..."
+            isStreaming ? "El agente está trabajando…" : "Pide el carrusel o el siguiente paso…"
           }
           disabled={isStreaming || disabled}
           rows={1}
           className="flex-1 resize-none bg-muted rounded-lg px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-          aria-label="Chat message input"
+          aria-label="Mensaje al agente"
         />
         {isStreaming ? (
           <Button
             size="icon"
             variant="destructive"
             onClick={onStop}
-            aria-label="Stop generating"
+            aria-label="Detener"
           >
             <Square className="h-3.5 w-3.5" />
           </Button>
@@ -94,7 +92,7 @@ export function ChatInput({ onSend, isStreaming, disabled, textareaRef: external
             size="icon"
             onClick={handleSubmit}
             disabled={!value.trim() || disabled}
-            aria-label="Send message"
+            aria-label="Enviar"
           >
             <Send className="h-4 w-4" />
           </Button>
