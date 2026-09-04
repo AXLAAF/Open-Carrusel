@@ -1,0 +1,15 @@
+{
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.next/**",
+    "**/node_modules/**",
+    "**/public/uploads/**",
+    "**/.cache/**"
+  ],
+  "format_on_save": "on",
+  "project_panel": {
+    "entry_spacing": "comfortable",
+    "folder_icons": true,
+    "file_icons": true
+  }
+}

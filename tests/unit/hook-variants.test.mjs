@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { generateHookVariants } from "./hook-variants.mjs";
+import { generateHookVariants } from "../../scripts/lib/hook-variants.mjs";
 
 test("generates 3 distinct hook styles", () => {
   const variants = generateHookVariants({

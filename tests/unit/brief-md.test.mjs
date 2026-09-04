@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseBriefMarkdown } from "./brief-md.mjs";
+import { parseBriefMarkdown } from "../../scripts/lib/brief-md.mjs";
 
 test("parses heading, kv, points, caption, hashtags", () => {
   const brief = parseBriefMarkdown(`# 5 errores al publicar

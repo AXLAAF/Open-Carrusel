@@ -1,10 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { resizeSlideHtml, renderLayout } from "./layouts.mjs";
+import { resizeSlideHtml, renderLayout } from "../../scripts/lib/layouts.mjs";
 import {
   resolveForeground,
   isDarkBackground,
-} from "./color-contrast.mjs";
+} from "../../scripts/lib/color-contrast.mjs";
 
 test("dark gradient gets white text", () => {
   const bg = "linear-gradient(135deg, #1B2B6B 0%, #2D4BD4 50%, #00D4FF 100%)";

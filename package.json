@@ -24,7 +24,7 @@
     "doctor": "node scripts/doctor.mjs",
     "oc": "node scripts/oc.mjs",
     "cli": "node scripts/oc.mjs",
-    "test": "node --test scripts/lib/*.test.mjs"
+    "test": "node --test tests/unit/*.test.mjs"
   },
   "dependencies": {
     "@cursor/sdk": "^1.0.28",

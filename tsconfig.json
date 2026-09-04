@@ -19,6 +19,7 @@
       }
     ],
     "types": ["node"],
+    "tsBuildInfoFile": "./.next/cache/tsconfig.tsbuildinfo",
     "paths": {
       "@/*": ["./src/*"]
     }

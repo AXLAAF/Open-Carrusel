@@ -1,8 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { contrastRatio, MIN_CONTRAST } from "./color-contrast.mjs";
-import { reviewCarousel } from "./slide-review.mjs";
-import { briefFromText, briefToMarkdown } from "./brief-from-text.mjs";
+import { contrastRatio, MIN_CONTRAST } from "../../scripts/lib/color-contrast.mjs";
+import { reviewCarousel } from "../../scripts/lib/slide-review.mjs";
+import { briefFromText, briefToMarkdown } from "../../scripts/lib/brief-from-text.mjs";
 
 describe("contrastRatio", () => {
   it("white on black is high", () => {

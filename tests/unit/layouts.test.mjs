@@ -5,7 +5,7 @@ import {
   renderLayout,
   slidesFromBrief,
   isLayoutId,
-} from "./layouts.mjs";
+} from "../../scripts/lib/layouts.mjs";
 
 const brand = {
   name: "XookTech",
