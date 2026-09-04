@@ -55,7 +55,7 @@ pnpm oc -- hook pick <id> 2
 pnpm oc -- schedule list
 pnpm oc -- schedule <id> --at "2026-08-20T18:00"
 pnpm oc -- library list
-pnpm oc -- library apply xook-hook-4x5 <id> --add
+pnpm oc -- library apply forge-hook-4x5 <id> --add
 pnpm oc -- review <id>
 pnpm oc -- import https://ejemplo.com --compose
 pnpm oc -- import ./doc.pdf --compose
@@ -116,7 +116,7 @@ Hook A/B: `pnpm oc -- hook variants <id>` then `hook pick <id> 1|2|3`. The three
 
 Publication queue: after caption + export, `pnpm oc -- schedule <id> --at "…"` and `schedule list`. Home tab **Cola**.
 
-XookTech layout library: `pnpm oc -- library list` / `library apply <layoutId> <carouselId> [--add|--slide]`. Home tab **Biblioteca**; Diseño rail picker.
+SwipeForge layout library: `pnpm oc -- library list` / `library apply <layoutId> <carouselId> [--add|--slide]`. Home tab **Biblioteca**; Diseño rail picker.
 
 Auto review: `pnpm oc -- review <id>` (contrast, padding ≥80, hook ≤8 words, CTA last). Studio tab **Revisión**.
 

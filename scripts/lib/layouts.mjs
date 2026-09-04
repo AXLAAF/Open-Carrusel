@@ -31,32 +31,32 @@ export function escapeHtml(value = "") {
     .replace(/"/g, "&quot;");
 }
 
-function usesXook(brand = {}) {
+function usesBrandFonts(brand = {}) {
   const heading = String(brand.fonts?.heading || "").toLowerCase();
   const name = String(brand.name || "").toLowerCase();
-  return heading.includes("borscha") || heading.includes("rostex") || name.includes("xook");
+  return heading.includes("borscha") || heading.includes("rostex") || name.includes("swipeforge");
 }
 
 function tokens(brand = {}) {
   const colors = brand.colors || {};
   const fonts = brand.fonts || {};
-  const xook = usesXook(brand);
+  const brandThemed = usesBrandFonts(brand);
   const defaultBg = !colors.background || colors.background === "#ffffff";
   const bg =
-    xook && defaultBg
+    brandThemed && defaultBg
       ? "linear-gradient(135deg, #1B2B6B 0%, #2D4BD4 50%, #00D4FF 100%)"
       : colors.background || "#0a0a0a";
   const fg = resolveForeground(bg, {
     text: colors.text,
     primary: colors.primary,
   });
-  const heading = xook
+  const heading = brandThemed
     ? "'BorschaBold', 'Borscha', sans-serif"
     : `'${fonts.heading || "Inter"}', sans-serif`;
-  const body = xook
+  const body = brandThemed
     ? "'BorschaRegular', 'Borscha', sans-serif"
     : `'${fonts.body || "Inter"}', sans-serif`;
-  const footerFont = xook ? "'RostexRegular', 'Rostex', sans-serif" : body;
+  const footerFont = brandThemed ? "'RostexRegular', 'Rostex', sans-serif" : body;
   return {
     bg,
     fg,

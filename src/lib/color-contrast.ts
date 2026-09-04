@@ -36,7 +36,7 @@ export function isDarkBackground(css: string | undefined | null): boolean {
   const s = String(css || "").toLowerCase();
   if (/black|navy|#0[0-9a-f]|rgb\(\s*0/.test(s)) return true;
   if (/white|#fff|ivory|snow/.test(s)) return false;
-  // Gradients without parseable hex: treat as dark (brand Xook default)
+  // Gradients without parseable hex: treat as dark (brand default)
   if (/gradient/i.test(s)) return true;
   return false;
 }

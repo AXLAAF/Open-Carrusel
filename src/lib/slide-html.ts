@@ -105,7 +105,7 @@ export function wrapSlideHtml(
       background: #000;
     }
 
-    .xook-slide {
+    .forge-slide {
       width: ${width}px;
       height: ${height}px;
       display: flex;
@@ -120,7 +120,7 @@ export function wrapSlideHtml(
       overflow: hidden;
     }
 
-    .xook-title {
+    .forge-title {
       font-family: "BorschaBold", "Borscha", sans-serif;
       font-size: 80px;
       text-transform: uppercase;
@@ -130,7 +130,7 @@ export function wrapSlideHtml(
       letter-spacing: -2px;
     }
 
-    .xook-body {
+    .forge-body {
       font-family: "BorschaRegular", "Borscha", sans-serif;
       font-size: 36px;
       line-height: 1.5;
@@ -138,7 +138,7 @@ export function wrapSlideHtml(
       max-width: 800px;
     }
 
-    .xook-tag {
+    .forge-tag {
       font-family: "BorschaBold", "Borscha", sans-serif;
       background: rgba(255,255,255,0.15);
       backdrop-filter: blur(12px);
@@ -150,7 +150,7 @@ export function wrapSlideHtml(
       text-transform: uppercase;
     }
 
-    .xook-logo {
+    .forge-logo {
       font-family: "RostexRegular", "Rostex", sans-serif;
       position: absolute;
       bottom: 80px;

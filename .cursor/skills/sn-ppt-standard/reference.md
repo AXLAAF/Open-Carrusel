@@ -31,10 +31,10 @@ Referencia compacta. Las slides de SwipeForge no son UI interactiva: aplica jera
 ## Layout editable
 
 ```html
-<section class="xook-slide" style="...flex column, padding, solid bg">
+<section class="forge-slide" style="...flex column, padding, solid bg">
   <p class="label">contexto corto</p>
-  <h1 class="xook-title">Tesis en ≤8 palabras</h1>
-  <p class="xook-body">Una frase que la sostiene.</p>
+  <h1 class="forge-title">Tesis en ≤8 palabras</h1>
+  <p class="forge-body">Una frase que la sostiene.</p>
 </section>
 ```
 

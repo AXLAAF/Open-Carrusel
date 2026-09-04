@@ -1,6 +1,6 @@
 # Diseno y Brand System - SwipeForge
 
-## 1. Identidad Visual XookTech
+## 1. Identidad Visual SwipeForge
 - **Fondo Oscuro**: `#0A0F1E`
 - **Fondo Claro**: `#F5F5F7`
 - **Acento Tecnico Naranja**: `#FF6B00`

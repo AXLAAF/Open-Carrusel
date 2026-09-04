@@ -90,17 +90,17 @@ pnpm oc -- import --text "Título…" --compose
 
 Genera `data/briefs/*.md` y opcionalmente hace compose. UI: inicio → **Importar**. Notion debe ser página pública.
 
-## Biblioteca XookTech
+## Biblioteca SwipeForge
 
 Layouts de marca reutilizables (hook…cta × 4:5/9:16):
 
 ```bash
 pnpm oc -- library list
-pnpm oc -- library apply xook-hook-4x5 <carouselId> --add
-pnpm oc -- library apply xook-value-4x5 <carouselId> --slide <slideId>
+pnpm oc -- library apply forge-hook-4x5 <carouselId> --add
+pnpm oc -- library apply forge-value-4x5 <carouselId> --slide <slideId>
 ```
 
-UI: inicio → **Biblioteca**; en Diseño → selector Biblioteca XookTech.
+UI: inicio → **Biblioteca**; en Diseño → selector Biblioteca SwipeForge.
 
 ## Ratio
 

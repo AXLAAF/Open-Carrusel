@@ -14,8 +14,8 @@ import {
 const FILE = "layout-library.json";
 const EMPTY: LayoutLibraryData = { layouts: [] };
 
-export const XOOK_LIBRARY_BRAND: BrandConfig = {
-  name: "XookTech",
+export const SWIPEFORGE_LIBRARY_BRAND: BrandConfig = {
+  name: "SwipeForge",
   colors: {
     primary: "#1B2B6B",
     secondary: "#2D4BD4",
@@ -27,7 +27,7 @@ export const XOOK_LIBRARY_BRAND: BrandConfig = {
   fonts: { heading: "Borscha", body: "Rostex" },
   customFonts: [],
   logoPath: null,
-  styleKeywords: ["xooktech", "bold", "tech"],
+  styleKeywords: ["swipeforge", "bold", "tech"],
   createdAt: "",
   updatedAt: "",
 };
@@ -39,19 +39,19 @@ function seedLayouts(): BrandLayout[] {
   for (const ratio of ratios) {
     for (const layout of LAYOUT_IDS) {
       const fields = {
-        ...defaultFields(layout, XOOK_LIBRARY_BRAND),
-        kicker: layout === "hook" ? "XOOKTECH" : undefined,
-        footer: "XookTech",
+        ...defaultFields(layout, SWIPEFORGE_LIBRARY_BRAND),
+        kicker: layout === "hook" ? "SWIPEFORGE" : undefined,
+        footer: "SwipeForge",
       };
       out.push({
-        id: `xook-${layout}-${ratio.replace(":", "x")}`,
-        name: `XookTech · ${LAYOUT_LABELS[layout]} · ${ratio}`,
-        description: `Layout ${LAYOUT_LABELS[layout]} con marca XookTech (${ratio}).`,
+        id: `forge-${layout}-${ratio.replace(":", "x")}`,
+        name: `SwipeForge · ${LAYOUT_LABELS[layout]} · ${ratio}`,
+        description: `Layout ${LAYOUT_LABELS[layout]} con estilo SwipeForge (${ratio}).`,
         layout: layout as LayoutId,
         aspectRatio: ratio,
-        html: renderLayout(layout as LayoutId, fields, XOOK_LIBRARY_BRAND, ratio),
-        tags: ["xooktech", layout, ratio],
-        brand: "XookTech",
+        html: renderLayout(layout as LayoutId, fields, SWIPEFORGE_LIBRARY_BRAND, ratio),
+        tags: ["swipeforge", layout, ratio],
+        brand: "SwipeForge",
         createdAt,
       });
     }

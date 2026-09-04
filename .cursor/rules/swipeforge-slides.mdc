@@ -10,7 +10,7 @@ Body-level HTML only. No `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`, or `<script
 
 Target the carousel aspect: 1:1 1080×1080, 4:5 1080×1350, 9:16 1080×1920. Minimum 80px padding. One idea per slide.
 
-Local fonts: `Borscha`, `BorschaBold`, `Rostex`, `RostexRegular`. Optional classes: `.xook-slide`, `.xook-title`, `.xook-body`, `.xook-tag`, `.xook-logo`.
+Local fonts: `Borscha`, `BorschaBold`, `Rostex`, `RostexRegular`. Optional classes: `.forge-slide`, `.forge-title`, `.forge-body`, `.forge-tag`, `.forge-logo`.
 
 Follow `.cursor/skills/sn-ppt-standard/SKILL.md`: editable text nodes, sober palette, no Inter/Poppins/mesh gradients/icon-card grids, no AI cliché copy.
 

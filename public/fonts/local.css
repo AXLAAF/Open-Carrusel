@@ -128,7 +128,7 @@
   font-display: block;
 }
 
-/* Aliases used by .xook-* slide classes */
+/* Aliases used by .forge-* slide classes */
 @font-face {
   font-family: "BorschaBold";
   src: url("/fonts/Borscha-Bold.ttf") format("truetype");

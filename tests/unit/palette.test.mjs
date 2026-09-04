@@ -37,7 +37,7 @@ test("sanitizePalette keeps only color keys", () => {
 
 test("mergeBrandWithPalette lets carousel win", () => {
   const brand = {
-    name: "Xook",
+    name: "SwipeForge",
     colors: { primary: "#1a1a2e", accent: "#e94560", background: "#ffffff" },
   };
   const merged = mergeBrandWithPalette(brand, {

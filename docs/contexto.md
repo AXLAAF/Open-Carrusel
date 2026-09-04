@@ -4,7 +4,7 @@
 
 - **Nombre del Proyecto**: SwipeForge
 - **Descripción**: Generador y editor de carruseles y anuncios de Instagram. Se edita a mano, con Cursor, con el CLI `oc`, o con el chat de Claude CLI (opcional).
-- **Ruta Absoluta**: `/home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/SwipeForge`
+- **Ruta**: Directorio raíz del repositorio (`SwipeForge`)
 - **Repositorio GitHub**: `https://github.com/AXLAAF/Open-Carrusel`
 - **URL Local**: `http://localhost:3000`
 
@@ -52,7 +52,7 @@ Skill de Cursor: `.cursor/skills/swipeforge/SKILL.md`
 ## 5. Comandos
 
 ```bash
-cd /home/axelmc/Documentos/Proyectos_JunDic/XookTech/Projects/SwipeForge
+cd <ruta-al-proyecto>/SwipeForge
 pnpm dev         # turbopack, http://localhost:3000
 pnpm oc -- help
 pnpm build
@@ -63,4 +63,4 @@ pnpm start
 
 ## 6. Fuentes locales
 
-Borscha y Rostex en `public/fonts/`, declaradas en `public/fonts/local.css`. En slides usar `"Borscha"`, `"BorschaBold"`, `"Rostex"`, `"RostexRegular"`, o las clases `.xook-slide`, `.xook-title`, `.xook-body`, `.xook-tag`, `.xook-logo`.
+Borscha y Rostex en `public/fonts/`, declaradas en `public/fonts/local.css`. En slides usar `"Borscha"`, `"BorschaBold"`, `"Rostex"`, `"RostexRegular"`, o las clases `.forge-slide`, `.forge-title`, `.forge-body`, `.forge-tag`, `.forge-logo`.

@@ -192,11 +192,11 @@ function now() {
 function blankHtml(ratio = "4:5") {
   const dims = { "1:1": [1080, 1080], "4:5": [1080, 1350], "9:16": [1080, 1920] };
   const [w, h] = dims[ratio] || dims["4:5"];
-  return `<div class="xook-slide" style="width:${w}px;height:${h}px">
-  <div class="xook-tag">NUEVO</div>
-  <h1 class="xook-title">Titular</h1>
-  <p class="xook-body">Edita data/slides/&lt;carouselId&gt;/&lt;slideId&gt;.html o usa oc slide update.</p>
-  <div class="xook-logo">SwipeForge</div>
+  return `<div class="forge-slide" style="width:${w}px;height:${h}px">
+  <div class="forge-tag">NUEVO</div>
+  <h1 class="forge-title">Titular</h1>
+  <p class="forge-body">Edita data/slides/&lt;carouselId&gt;/&lt;slideId&gt;.html o usa forge slide update.</p>
+  <div class="forge-logo">SwipeForge</div>
 </div>`;
 }
 
@@ -209,16 +209,16 @@ async function shouldUseApi() {
 const HELP = `SwipeForge CLI — el editor entiende esto. La IA es opcional.
 
 Cómo hacer un carrusel (sin IA)
-  1. pnpm forge -- brand set --name "XookTech" --accent "#e94560" --heading Borscha --body Rostex
+  1. pnpm forge -- brand set --name "SwipeForge" --accent "#e94560" --heading Borscha --body Rostex
   2. pnpm forge -- make --name "5 errores" --topic "Tu hook de 8 palabras" --points "Uno|Dos|Tres" --cta "Guarda esto"
-     o: pnpm oc -- compose examples/carousel-brief.md
-     o: pnpm oc -- compose examples/carousel-brief.json
+     o: pnpm forge -- compose docs/examples/carousel-brief.md
+     o: pnpm forge -- compose docs/examples/carousel-brief.json
   3. Abre la URL del editor. Corrige texto (clic en el preview), tipo, capas y exporta a mano
-  4. pnpm oc -- export <id> --format png
+  4. pnpm forge -- export <id> --format png
 
 Usage:
-  pnpm oc -- <command> [args] [--json]
-  npm run oc -- <command>   (equivale)
+  pnpm forge -- <command> [args] [--json]
+  npm run forge -- <command>   (equivale)
 
 Compose
   make | compose [--name] [--topic] [--points a|b|c] [--cta] [--ratio] [--caption] [--hashtags]
@@ -253,7 +253,7 @@ Schedule / queue
   schedule clear <id>
   schedule status <id> draft|ready|scheduled|published
 
-Brand layout library (XookTech)
+Brand layout library (SwipeForge)
   library list
   library apply <layoutId> <carouselId> [--slide id | --add]
   library reseed

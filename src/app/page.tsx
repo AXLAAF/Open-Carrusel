@@ -149,7 +149,7 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-bold">SwipeForge</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Carruseles Instagram · cola de publicación · layouts XookTech
+                Carruseles Instagram · cola de publicación · layouts SwipeForge
               </p>
             </div>
             <div className="flex gap-2">
@@ -204,7 +204,7 @@ export default function DashboardPage() {
               <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h2 className="text-lg font-semibold mb-2">Sin carruseles aún</h2>
               <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                Crea tu primer carrusel o aplica un layout XookTech desde
+                Crea tu primer carrusel o aplica un layout SwipeForge desde
                 Biblioteca.
               </p>
               <div className="flex gap-2 justify-center">

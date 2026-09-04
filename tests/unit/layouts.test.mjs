@@ -8,7 +8,7 @@ import {
 } from "../../scripts/lib/layouts.mjs";
 
 const brand = {
-  name: "XookTech",
+  name: "SwipeForge",
   colors: { primary: "#ffffff", accent: "#00D4FF", background: "#ffffff" },
   fonts: { heading: "Borscha", body: "Rostex" },
 };

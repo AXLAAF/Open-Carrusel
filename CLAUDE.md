@@ -22,7 +22,7 @@ CLI-first Instagram carousel editor. Next.js 16 + React 19 + TypeScript + Tailwi
 - `src/lib/brand-resolve.ts` — Server `brandForCarousel` (loads brand.json)
 - `src/lib/hook-variants.ts` — Generate 3 A/B hook titles (question / bold / curiosity)
 - `src/lib/publish-ready.ts` — Caption/export checklist + queue readiness
-- `src/lib/layout-library.ts` — XookTech reusable brand layouts (`data/layout-library.json`)
+- `src/lib/layout-library.ts` — SwipeForge reusable brand layouts (`data/layout-library.json`)
 - `src/lib/slide-review.ts` — Auto review (contrast, padding, hook words, CTA)
 - `src/lib/import-source.ts` — URL / PDF / Notion → brief.md
 - `src/lib/slide-html.ts` — `wrapSlideHtml()` wraps slide body HTML into full documents
@@ -57,7 +57,7 @@ All at localhost:3000:
 - `POST /api/style-presets/[id]/apply` — Copy preset into brand
 - `POST /api/carousels/[id]/restyle` — Re-render slides with current brand
 - `GET/PUT /api/schedule` — Publication queue (list / set date / status)
-- `GET/POST /api/layout-library` — XookTech brand layouts (list / apply / reseed)
+- `GET/POST /api/layout-library` — SwipeForge brand layouts (list / apply / reseed)
 - `GET /api/carousels/[id]/review` — Auto design review
 - `POST /api/import` — URL / PDF / Notion / text → brief (+ optional compose)
 - `POST /api/chat` — Cursor SDK local agent + SSE streaming

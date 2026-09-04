@@ -404,6 +404,6 @@ Good first contributions: roadmap items above, more brand templates, accessibili
 
 <div align="center">
 
-**Maintained by [XookTech](https://github.com/AXLAAF/Open-Carrusel).**
+**SwipeForge — Open-source carousel generator for social media.**
 
 </div>

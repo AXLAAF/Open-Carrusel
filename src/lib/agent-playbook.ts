@@ -103,8 +103,8 @@ COLA DE PUBLICACIÓN:
 - Tras caption + hashtags + export: \`pnpm oc -- schedule <id> --at "2026-08-20T18:00"\` y \`schedule list\`.
 - Marcar publicado: \`pnpm oc -- schedule status <id> published\`.
 
-BIBLIOTECA XOOKTECH:
-- \`pnpm oc -- library list\` · \`library apply xook-hook-4x5 <id> --add\`
+BIBLIOTECA SWIPEFORGE:
+- \`pnpm oc -- library list\` · \`library apply forge-hook-4x5 <id> --add\`
 
 REVISIÓN:
 - \`pnpm oc -- review <id>\` — contraste, padding, hook ≤8 palabras, CTA al final.

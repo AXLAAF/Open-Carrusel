@@ -541,7 +541,7 @@ async function cmdLibrary(http) {
     const data = await cli.api("GET", "/api/layout-library?reseed=1");
     cli.print(
       data,
-      `Reseeded ${(data.layouts || []).length} XookTech layouts`
+      `Reseeded ${(data.layouts || []).length} SwipeForge layouts`
     );
     return;
   }

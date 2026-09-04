@@ -76,7 +76,7 @@ export function BrandLibraryPicker({
       <section className="space-y-1.5">
         <p className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
           <Library className="h-3 w-3" />
-          Biblioteca XookTech
+          Biblioteca SwipeForge
         </p>
         <p className="text-[10px] text-muted-foreground">Cargando layouts…</p>
       </section>
@@ -87,7 +87,7 @@ export function BrandLibraryPicker({
     <section className="space-y-1.5">
       <p className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
         <Library className="h-3 w-3" />
-        Biblioteca XookTech
+        Biblioteca SwipeForge
       </p>
       <select
         value={layoutId}

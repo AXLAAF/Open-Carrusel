@@ -57,7 +57,7 @@ Reglas de diseño: `.cursor/skills/swipeforge/SKILL.md` y `.cursor/skills/sn-ppt
 
 Import desde web/Notion/PDF: `pnpm oc -- import <url|file.pdf> --compose` o inicio → **Importar**.
 
-Layouts XookTech reutilizables: inicio → **Biblioteca**, o `pnpm oc -- library apply xook-hook-4x5 <id> --add`.
+Layouts SwipeForge reutilizables: inicio → **Biblioteca**, o `pnpm oc -- library apply forge-hook-4x5 <id> --add`.
 
 El agente, después de componer, **no se despide**. Pregunta o ejecuta lo que falte: slides, revisión, caption, export, cola, checklist.
 

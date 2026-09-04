@@ -76,7 +76,7 @@ export function LayoutLibraryGallery({
     <div>
       <div className="flex items-center justify-between gap-2 mb-4">
         <p className="text-xs text-muted-foreground">
-          Layouts XookTech reutilizables · {visible.length}
+          Layouts de marca reutilizables · {visible.length}
         </p>
         <div className="flex gap-1">
           {(["all", "4:5", "9:16"] as const).map((f) => (

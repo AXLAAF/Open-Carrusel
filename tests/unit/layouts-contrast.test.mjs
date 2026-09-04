@@ -34,9 +34,9 @@ test("resizeSlideHtml updates width and height", () => {
   assert.match(story, /height:1920px/);
 });
 
-test("xook brand with gradient background keeps white text", () => {
+test("swipeforge brand with gradient background keeps white text", () => {
   const brand = {
-    name: "XookTech",
+    name: "SwipeForge",
     colors: {
       primary: "#1B2B6B",
       accent: "#00D4FF",

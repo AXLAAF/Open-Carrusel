@@ -309,11 +309,11 @@ export function ensureEditable(html: string): string {
   if (html.includes("data-oc-field=")) return html;
   let out = html;
   out = injectOnTag(out, /<h1\b[^>]*>/i, "title");
-  out = injectOnTag(out, /<p\b[^>]*class="[^"]*xook-tag[^"]*"[^>]*>/i, "kicker");
-  out = injectOnTag(out, /<div\b[^>]*class="[^"]*xook-tag[^"]*"[^>]*>/i, "kicker");
-  out = injectOnTag(out, /<p\b[^>]*class="[^"]*xook-body[^"]*"[^>]*>/i, "body");
-  out = injectOnTag(out, /<p\b[^>]*class="[^"]*xook-logo[^"]*"[^>]*>/i, "footer");
-  out = injectOnTag(out, /<div\b[^>]*class="[^"]*xook-logo[^"]*"[^>]*>/i, "footer");
+  out = injectOnTag(out, /<p\b[^>]*class="[^"]*forge-tag[^"]*"[^>]*>/i, "kicker");
+  out = injectOnTag(out, /<div\b[^>]*class="[^"]*forge-tag[^"]*"[^>]*>/i, "kicker");
+  out = injectOnTag(out, /<p\b[^>]*class="[^"]*forge-body[^"]*"[^>]*>/i, "body");
+  out = injectOnTag(out, /<p\b[^>]*class="[^"]*forge-logo[^"]*"[^>]*>/i, "footer");
+  out = injectOnTag(out, /<div\b[^>]*class="[^"]*forge-logo[^"]*"[^>]*>/i, "footer");
   if (!out.includes('data-oc-field="body"')) {
     out = injectOnTag(out, /<p\b[^>]*>/i, "body");
   }
