@@ -143,20 +143,10 @@ export default function DashboardPage() {
         initialBrand={brand || undefined}
       />
 
-      <main className="flex-1 overflow-y-auto relative">
-        {/* Glow térmico de fondo sutil inspirado en Stitch */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute top-12 left-1/3 w-80 h-80 bg-[#d82b6b]/10 rounded-full blur-3xl pointer-events-none -z-10" />
-
+      <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-accent/10 border border-accent/20 mb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold">
-                  Swiss Precision · 4:5 Native
-                </span>
-              </div>
               <h1 className="text-3xl font-bold font-display tracking-tight text-white">
                 SwipeForge
               </h1>
