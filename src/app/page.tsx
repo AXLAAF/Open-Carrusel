@@ -143,40 +143,57 @@ export default function DashboardPage() {
         initialBrand={brand || undefined}
       />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
+      <main className="flex-1 overflow-y-auto relative">
+        {/* Glow térmico de fondo sutil inspirado en Stitch */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-12 left-1/3 w-80 h-80 bg-[#d82b6b]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-2xl font-bold">SwipeForge</h1>
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-accent/10 border border-accent/20 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold">
+                  Swiss Precision · 4:5 Native
+                </span>
+              </div>
+              <h1 className="text-3xl font-bold font-display tracking-tight text-white">
+                SwipeForge
+              </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Carruseles Instagram · cola de publicación · layouts SwipeForge
+                Taller editorial de carruseles de alto impacto · cola de publicación · biblioteca modular
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <Button
                 onClick={() => setShowImportDialog(true)}
                 variant="outline"
+                className="border-white/10 hover:border-white/25 hover:bg-white/5 text-sm"
               >
-                <FileUp className="h-4 w-4" />
+                <FileUp className="h-4 w-4 mr-1.5 text-accent" />
                 Importar
               </Button>
-              <Button onClick={() => setShowCreateDialog(true)} variant="accent">
-                <Plus className="h-4 w-4" />
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                variant="accent"
+                className="bg-gradient-to-r from-accent to-[#d82b6b] text-white font-medium shadow-[0_0_20px_rgba(255,85,0,0.25)] hover:shadow-[0_0_25px_rgba(216,43,107,0.4)] transition-all"
+              >
+                <Plus className="h-4 w-4 mr-1.5" />
                 Nuevo carrusel
               </Button>
             </div>
           </div>
 
-          <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
+          <div className="flex gap-1.5 mb-6 border-b border-border/60 overflow-x-auto">
             {tabs.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => setActiveTab(t.id)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                   activeTab === t.id
-                    ? "border-accent text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "border-accent text-white font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-white"
                 }`}
               >
                 {t.label}
@@ -232,7 +249,7 @@ export default function DashboardPage() {
                 <div
                   key={carousel.id}
                   onClick={() => router.push(`/carousel/${carousel.id}`)}
-                  className="relative text-left rounded-xl border border-border bg-surface hover:border-accent/50 hover:shadow-md hover:-translate-y-0.5 p-4 group cursor-pointer transition-[translate,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
+                  className="relative text-left rounded-xl border border-white/10 bg-[#12141c] hover:border-accent/40 hover:shadow-[0_8px_25px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 p-4 group cursor-pointer transition-all duration-200"
                 >
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
@@ -247,7 +264,7 @@ export default function DashboardPage() {
                           setCarousels((prev) => [dup, ...prev]);
                         }
                       }}
-                      className="h-7 w-7 rounded-lg flex items-center justify-center bg-white border border-border hover:bg-muted"
+                      className="h-7 w-7 rounded-md flex items-center justify-center bg-[#1c1f2b] border border-white/15 text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                       aria-label={`Duplicate ${carousel.name}`}
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -256,7 +273,7 @@ export default function DashboardPage() {
                       onClick={(e) =>
                         handleDelete(e, carousel.id, carousel.name)
                       }
-                      className="h-7 w-7 rounded-lg flex items-center justify-center bg-white border border-border hover:bg-destructive hover:text-white hover:border-destructive"
+                      className="h-7 w-7 rounded-md flex items-center justify-center bg-[#1c1f2b] border border-white/15 text-white/80 hover:bg-destructive hover:text-white hover:border-destructive transition-colors"
                       aria-label={`Delete ${carousel.name}`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

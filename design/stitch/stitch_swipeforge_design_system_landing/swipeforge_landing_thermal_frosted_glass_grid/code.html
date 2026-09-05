@@ -1,0 +1,943 @@
+<!DOCTYPE html><html class="dark" lang="es"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Space+Grotesk:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.animate-pulse-glow { animation: pulseGlow 8s ease-in-out infinite; }
+.animate-sparkle { animation: gentleFloat 4s ease-in-out infinite alternate; }
+
+/* Frosted glass tile styling exactly resembling Agent SMM */
+.frosted-tile {
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-radius: 1.25rem;
+}
+.frosted-panel {
+  background: rgba(14, 15, 22, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.frosted-subpanel {
+  background: rgba(22, 24, 34, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"secondary-fixed-dim":"#ffb3b1","inverse-on-surface":"#2f3036","surface-container-lowest":"#08090d","surface-container":"#151620","tertiary-fixed-dim":"#f3afff","on-surface-variant":"#e2c6be","on-background":"#f4f4f7","inverse-surface":"#e3e1e9","surface-tint":"#ffb59c","on-tertiary":"#4e155e","primary":"#ff7733","on-tertiary-fixed-variant":"#682e77","inverse-primary":"#aa3600","surface-container-low":"#0f1017","on-error-container":"#ffdad6","surface-dim":"#08090d","surface-container-highest":"#252736","on-primary-container":"#ffffff","secondary":"#ff4071","error":"#ffb4ab","primary-fixed":"#ffdbcf","on-error":"#690005","on-tertiary-container":"#470c57","on-primary":"#ffffff","on-primary-fixed-variant":"#822700","surface":"#090a0f","on-primary-fixed":"#390c00","background":"#08090d","outline-variant":"#502b36","primary-container":"#ff5500","on-surface":"#f7f7fa","on-secondary":"#ffffff","on-secondary-fixed":"#410007","on-secondary-container":"#ffffff","surface-bright":"#323445","on-tertiary-fixed":"#340043","surface-variant":"#1f212d","tertiary-fixed":"#fcd7ff","tertiary":"#f3afff","tertiary-container":"#c6426e","error-container":"#93000a","secondary-container":"#d82b6b","primary-fixed-dim":"#ffb59c","secondary-fixed":"#ffdad8","on-secondary-fixed-variant":"#92001c","outline":"#9f7584","surface-container-high":"#1c1d29"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"pad-xl":"2rem","grid-base":"0.5rem","gutter-panel":"1rem","safezone-block":"2.5rem","gutter-canvas":"1.5rem","pad-md":"1rem","safezone-inline":"2rem","pad-sm":"0.5rem","pad-xs":"0.25rem","pad-lg":"1.5rem"},"fontFamily":{"body-md":["Geist"],"headline-md":["Space Grotesk"],"title-sm":["Geist"],"label-code":["JetBrains Mono"],"display-xl-mobile":["Space Grotesk"],"headline-lg":["Space Grotesk"],"body-lg":["Geist"],"display-xl":["Space Grotesk"],"label-caps":["JetBrains Mono"],"caption-xs":["Geist"],"headline-lg-mobile":["Space Grotesk"]},"fontSize":{"body-md":["14px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"600"}],"title-sm":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-code":["13px",{"lineHeight":"18px","letterSpacing":"0.02em","fontWeight":"500"}],"display-xl-mobile":["36px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"700"}],"headline-lg":["40px",{"lineHeight":"48px","letterSpacing":"-0.03em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"400"}],"display-xl":["64px",{"lineHeight":"72px","letterSpacing":"-0.04em","fontWeight":"700"}],"label-caps":["11px",{"lineHeight":"14px","letterSpacing":"0.1em","fontWeight":"700"}],"caption-xs":["11px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"headline-lg-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen selection:bg-secondary-container selection:text-white relative overflow-x-hidden">
+<!-- ========================================================================= -->
+<!-- ATMOSPHERE: EXACT "AGENT SMM" REFERENCE (IMAGE_14) ATMOSPHERE             -->
+<!-- Deep Obsidian pitch black top -> Luminous Magenta-Crimson -> Amber-Orange -->
+<!-- ========================================================================= -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+<!-- Deep Base Substrate -->
+<div class="absolute inset-0 bg-[#07080c]"></div>
+<!-- Radiating thermal underglow gradients identical to Image 14 -->
+<!-- Middle-to-Bottom Glowing Magenta & Orange field -->
+<div class="absolute top-[28%] -right-[15%] w-[80vw] h-[85vh] bg-[#c6426e] rounded-full blur-[170px] opacity-45 mix-blend-screen animate-pulse-glow"></div>
+<div class="absolute top-[42%] -left-[10%] w-[65vw] h-[80vh] bg-[#911f58] rounded-full blur-[180px] opacity-35 mix-blend-screen"></div>
+<div class="absolute top-[60%] left-[10%] right-[5%] h-[90vh] bg-gradient-to-tr from-[#ff5500] via-[#d82b6b] to-[#79154a] rounded-full blur-[160px] opacity-55 mix-blend-screen"></div>
+<div class="absolute bottom-[-15%] right-0 w-[60vw] h-[65vh] bg-[#ff7700] rounded-full blur-[160px] opacity-40 mix-blend-screen"></div>
+<!-- Architectural Vertical Pinstripe Guides (from Image 14) -->
+<div class="absolute inset-0 max-w-7xl mx-auto px-pad-lg grid grid-cols-6 md:grid-cols-12 pointer-events-none h-full opacity-10">
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+<div class="border-r border-white/20 h-full"></div>
+</div>
+<!-- Iconic Frosted Glass Tile Matrix (Staircase / Rhythm like Image 14) -->
+
+<!-- Subtle Top Vignette ensuring pristine contrast on Nav and upper hero -->
+<div class="absolute inset-0 bg-gradient-to-b from-[#07080c] via-transparent to-transparent h-[240px] pointer-events-none"></div>
+</div>
+<!-- ======================================================== -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-[#08090d]/80 backdrop-blur-xl border-b border-white/10"><div class="h-16 w-full max-w-7xl mx-auto px-pad-lg flex items-center justify-between gap-gutter-panel"><div class="flex items-center gap-pad-md"><a class="flex items-center gap-pad-sm group" href="#"><img alt="SwipeForge Logo" class="w-8 h-8 rounded-lg object-contain shadow-sm border border-white/10" src="https://lh3.googleusercontent.com/aida/AEtjO1WJKayMFBU1no0rSt9xLCbqnrm7c5Iw8M8X4KkELIS51k1dGwKVkaRF6YOhzjQyZVJD_cUr-GQboyuBkOaO6EuADJAj8in_zCgw6fnYQstS6lOy4K6BOmTntQGFMsGNHLbUWBn5naAj7tHBq2FjjXA6r7U_C8sXTZs7mx_um-XOhsnXhskdDUquTTlIci6IwKCfnsypeJs3_XdTFhJ0uNERNxw8o9jaWtickrQ0h8H-WG5Ss-bVS6MTvm0"><span class="font-headline-md text-title-sm tracking-tight text-white font-bold">SwipeForge</span></a><span class="px-pad-xs py-0.5 rounded-DEFAULT bg-white/5 text-on-surface-variant font-label-code text-caption-xs border border-white/10">v1.4.0-preview</span></div><nav class="hidden xl:flex items-center gap-pad-lg" data-active-classes="text-primary font-semibold"><a class="font-body-md text-body-md text-on-surface-variant hover:text-white transition-colors" data-path="caracteristicas" href="#">Características</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-white transition-colors" data-path="playground-visual" href="#">Playground Visual</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-white transition-colors" data-path="biblioteca-de-layouts" href="#">Biblioteca de Layouts</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-white transition-colors" data-path="para-desarrolladores" href="#">Para Desarrolladores</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-white transition-colors" data-path="docs" href="#">Docs</a></nav><div class="flex items-center gap-pad-md"><div class="hidden sm:flex items-center gap-pad-xs px-pad-sm py-1 bg-white/5 border border-white/10 rounded-DEFAULT text-white font-label-code text-caption-xs"><span class="text-primary font-bold">★</span><span class="">4.8k on GitHub</span></div><a class="flex items-center justify-center px-pad-md py-2 rounded-xl bg-gradient-to-r from-primary-container via-secondary-container to-[#c6426e] text-white font-headline-md text-body-md font-semibold shadow-[0_0_24px_rgba(255,85,0,0.4)] hover:shadow-[0_0_32px_rgba(216,43,107,0.6)] transition-all" href="#">Abrir Studio Local</a><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-white/15" src="https://lh3.googleusercontent.com/aida/AEtjO1Vy17nWhLoU90yV9TBEWy7WPEriyiTJrtDb7-cwXSMz27349sRjr761kruCIcTauxyqUkpE4-l1SUu-P60sgJpigQxt6c4CisoRr8XOgwCcLfC5HNeuzZXaQOZpnFDnOGWU9ZCTxIemSrcZ4kd37Uc1fraGHEShCW-OTXL09mJlb-JZ_TeDtOnEItmgUvr8DblBwOovB-sjeENt79vmb-YIXNuKqtzYyj_cbHLd-ylxzbF3kG6hqSbO7g"></div></div></header><main class="w-full pt-16 relative z-10"><div class="flex flex-col w-full text-on-surface overflow-x-hidden">
+<!-- HERO SECTION -->
+<section class="relative w-full py-safezone-block overflow-hidden">
+<div class="max-w-7xl mx-auto px-pad-lg flex flex-col gap-pad-xl">
+<!-- Top Badges & Meta -->
+<div class="flex flex-wrap items-center justify-between gap-pad-md">
+<div class="inline-flex items-center gap-pad-sm px-pad-md py-1.5 rounded-full bg-white/[0.06] backdrop-blur-md border border-white/15 shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+<span class="font-label-caps text-label-caps tracking-widest text-primary-fixed uppercase">Open Source Editorial Carousel Workshop</span>
+</div>
+<div class="flex items-center gap-pad-sm font-label-code text-caption-xs text-on-surface-variant">
+<span class="text-white/80">SPEC v1.4</span>
+<span class="text-white/30">/</span>
+<span class="text-white/80">SWISS GRID ENGINE</span>
+<span class="text-white/30">/</span>
+<span class="text-secondary font-semibold">4:5 NATIVE</span>
+</div>
+</div>
+<!-- Main Typography & Subhead with Image 14 Sparks and Title Structure -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-pad-xl items-end relative">
+<div class="lg:col-span-8 flex flex-col gap-pad-md relative">
+<!-- Celestial micro-sparks from IMAGE_14 -->
+<div class="absolute -top-6 right-16 sm:right-32 flex items-center gap-1.5 text-white/90 animate-sparkle pointer-events-none select-none">
+<span class="text-2xl">✦</span>
+<span class="text-sm opacity-70 -mt-2">✧</span>
+</div>
+<div class="font-label-code text-caption-xs text-primary tracking-widest uppercase flex items-center gap-pad-xs">
+<span class="">+</span><span class="">00.42g SWISS PRECISION</span><span class="">+</span>
+</div>
+<h1 class="font-display-xl text-display-xl tracking-tighter text-white leading-tight font-extrabold">
+            Deja de publicar carruseles <span class="bg-gradient-to-r from-[#ff7733] via-[#ff5500] to-[#d82b6b] bg-clip-text text-transparent drop-shadow-sm">genéricos</span>. Diseña con precisión quirúrgica.
+          </h1>
+</div>
+<div class="lg:col-span-4 flex flex-col gap-pad-lg">
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+            Crea piezas visuales donde cada deslizamiento aporta valor real. Con lienzo interactivo en tiempo real, variantes de hook A/B, exportación PNG nativa y control total en HTML/CSS.
+          </p>
+<div class="flex flex-col sm:flex-row gap-pad-md items-stretch sm:items-center">
+<a class="inline-flex items-center justify-center gap-pad-sm px-pad-lg py-3.5 rounded-xl bg-gradient-to-r from-primary-container via-secondary-container to-[#c6426e] text-white font-headline-md text-body-md font-bold shadow-[0_0_24px_rgba(255,85,0,0.35)] hover:shadow-[0_0_32px_rgba(216,43,107,0.6)] hover:scale-[1.01] transition-all" href="#playground">
+<span class="">Iniciar Editor Local</span>
+<span class="material-symbols-outlined text-title-sm">arrow_forward</span>
+</a>
+<div class="flex items-center justify-between px-pad-md py-3 rounded-xl bg-white/[0.05] backdrop-blur-md border border-white/10 shadow-sm font-label-code text-label-code">
+<span class="text-primary font-medium">pnpm oc -- compose</span>
+<button class="ml-pad-md text-on-surface-variant hover:text-white transition-colors" id="cli-copy-btn" onclick="navigator.clipboard.writeText('pnpm oc -- compose'); const label=this.querySelector('span'); label.textContent='done'; setTimeout(()=&gt;label.textContent='content_copy', 1500);">
+<span class="material-symbols-outlined text-body-md">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- FILMSTRIP INTERACTIVE HERO CAROUSEL -->
+<div class="mt-pad-lg flex flex-col gap-pad-md">
+<!-- Filmstrip Controls Header -->
+<div class="flex flex-wrap items-center justify-between gap-pad-md px-pad-md py-2.5 rounded-xl bg-white/[0.05] backdrop-blur-md border border-white/10 shadow-sm">
+<div class="flex items-center gap-pad-md font-label-code text-caption-xs">
+<span class="font-bold text-primary">PROJECT_01</span>
+<span class="text-white/20">/</span>
+<span class="text-on-surface-variant">INSPIRATION_STREAM</span>
+<span class="px-2 py-0.5 rounded-DEFAULT bg-white/10 text-white text-[10px]">5 SLIDES SYNCHRONIZED</span>
+</div>
+<div class="flex items-center gap-pad-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mr-pad-xs">Aspect Ratio:</span>
+<button class="px-2.5 py-1 rounded-DEFAULT bg-primary-container text-white font-label-code text-caption-xs font-bold shadow-sm">4:5</button>
+<button class="px-2.5 py-1 rounded-DEFAULT bg-white/5 border border-white/10 text-on-surface-variant font-label-code text-caption-xs hover:text-white">1:1</button>
+<button class="px-2.5 py-1 rounded-DEFAULT bg-white/5 border border-white/10 text-on-surface-variant font-label-code text-caption-xs hover:text-white">9:16</button>
+</div>
+</div>
+<!-- 5-Slide Filmstrip Showcase -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-pad-md">
+<!-- Slide 1: Thermal SMM Hook (Exact tribute to Image 14) -->
+<div class="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-b from-[#090a0f] via-[#1c0b16] to-[#8d1d4d] border border-white/20 shadow-2xl flex flex-col justify-between p-pad-lg transition-transform hover:-translate-y-1">
+<!-- Subtle vertical guide columns inside card -->
+<div class="absolute inset-0 grid grid-cols-5 pointer-events-none opacity-20">
+<div class="border-r border-white/30"></div>
+<div class="border-r border-white/30"></div>
+<div class="border-r border-white/30"></div>
+<div class="border-r border-white/30"></div>
+</div>
+<!-- Frosted rounded pill tiles inside card like Image 14 -->
+<div class="absolute bottom-0 right-0 w-3/4 grid grid-cols-3 gap-1.5 p-2 pointer-events-none opacity-40">
+<div class="aspect-square rounded-xl bg-white/20 backdrop-blur-md border border-white/20"></div>
+<div class="aspect-square rounded-xl bg-white/25 backdrop-blur-md border border-white/25"></div>
+<div class="aspect-square rounded-xl bg-white/30 backdrop-blur-md border border-white/30"></div>
+<div class="aspect-square rounded-xl bg-white/25 backdrop-blur-md border border-white/25"></div>
+<div class="aspect-square rounded-xl bg-white/30 backdrop-blur-md border border-white/30"></div>
+<div class="aspect-square rounded-xl bg-white/35 backdrop-blur-md border border-white/35"></div>
+</div>
+<!-- Micro spark in card -->
+<div class="absolute top-12 right-10 text-white/90 text-sm animate-sparkle pointer-events-none">✦</div>
+<div class="relative z-10 flex justify-between items-start">
+<div>
+<p class="font-headline-md text-xs font-bold text-white tracking-wider">DESIGN</p>
+<p class="font-label-code text-[11px] text-white/70">@swipe.forge</p>
+</div>
+<span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/15 backdrop-blur-md text-white font-bold border border-white/20">01/05</span>
+</div>
+<div class="relative z-10 my-auto pt-pad-md">
+<h3 class="font-display-xl text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Agent</h3>
+<h3 class="font-display-xl text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ff7733] to-[#ff4071] tracking-tight flex items-center gap-1.5">
+<span class="">SMM!</span>
+<span class="text-[9px] font-label-code text-white/80 tracking-normal font-medium uppercase px-1.5 py-0.5 rounded bg-white/15 border border-white/20">SUSCRIBIR</span>
+</h3>
+</div>
+<div class="relative z-10 flex flex-col gap-0.5">
+<span class="font-headline-md text-sm text-white font-semibold">Tendencias 2026</span>
+<span class="font-label-code text-[10px] text-white/80">TOP-5 TOOLKITS</span>
+</div>
+</div>
+<!-- Slide 2: Minimalist Typo Blueprint from Reference Image -->
+<div class="group relative aspect-[4/5] rounded-2xl overflow-hidden frosted-panel border border-white/15 shadow-xl flex flex-col justify-between transition-transform hover:-translate-y-1">
+<img alt="Swiss typography reference breakdown slide with precise technical glyphs" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6PP6pYJw_98wjpF1xdijUZmx9r5sLu1rGsNuzYzYH7Vb5054uA4JEfeop-h94y2ikr7Cb0SCoErBguXYiQUUBA9Zx2w_o0moiOIi5kwjtJQ03_LD4DaxSE5iwe2yVlF91-9T_LrIH4za58SL35ZIP3Nf_QOnaTkWQgX-WYJzLYM1IROvtYh_kKWevB4goEUEljYFpqztD1mQ9MTgeWFXwjZgcK1M50m5ueZpmZ-YV2NLKzMbbKa4i9KVQtJu_q0WhvA">
+<div class="absolute inset-0 bg-gradient-to-t from-[#08090d]/95 via-transparent to-[#08090d]/80 pointer-events-none"></div>
+<div class="relative z-10 flex justify-between items-start p-pad-md">
+<span class="font-label-caps text-label-caps bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-DEFAULT text-white border border-white/10">SWISS_DSGN</span>
+<span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/15 backdrop-blur-md text-white font-bold border border-white/20">02/05</span>
+</div>
+<div class="relative z-10 p-pad-md">
+<div class="font-label-code text-caption-xs text-primary uppercase tracking-wider font-semibold">GRID_STRUCTURE_v2</div>
+<p class="font-headline-md text-title-sm text-white font-semibold">International Typographic Style</p>
+</div>
+</div>
+<!-- Slide 3: Warp Gradients Orbital Visual -->
+<div class="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-[#12131d] via-[#4d1637] to-[#d82b6b] border border-white/20 shadow-xl flex flex-col justify-between p-pad-lg text-white transition-transform hover:-translate-y-1">
+<!-- Subtle orbital ring SVG overlay -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-40" viewBox="0 0 200 250">
+<ellipse cx="100" cy="125" fill="none" rx="80" ry="35" stroke="#ffffff" stroke-width="0.8" transform="rotate(-25 100 125)"></ellipse>
+<circle cx="50" cy="90" fill="#ffffff" r="1.5"></circle>
+<circle cx="150" cy="160" fill="#ffffff" r="1.5"></circle>
+</svg>
+<div class="absolute top-1/3 left-1/4 w-32 h-32 bg-[#ff5500] rounded-full blur-2xl opacity-60"></div>
+<div class="absolute bottom-1/4 right-1/4 w-20 h-20 bg-[#c6426e] rounded-full blur-xl opacity-60"></div>
+<div class="relative z-10 flex justify-between items-start">
+<span class="font-label-code text-caption-xs text-white/90 font-bold">WARP ↗ GRADIENTS</span>
+<span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/20 backdrop-blur-md text-white font-bold border border-white/20">03/05</span>
+</div>
+<div class="relative z-10 my-auto text-center">
+<h4 class="font-headline-lg text-headline-lg font-extrabold tracking-tight text-white drop-shadow-md">Warp<br>Gradients</h4>
+<span class="inline-block mt-pad-xs font-label-code text-caption-xs text-white/80">00.42g MESH</span>
+</div>
+<div class="relative z-10 flex justify-between items-end font-label-code text-caption-xs text-white/80">
+<span class="">DSGN-2026</span>
+<span class="font-bold">EAN-13 SPEC</span>
+</div>
+</div>
+<!-- Slide 4: Modular Orange Columns (Reference 4) -->
+<div class="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-[#0c0d15] to-[#25121b] border border-white/15 shadow-xl flex flex-col justify-between p-pad-lg transition-transform hover:-translate-y-1">
+<!-- Column gradient bands -->
+<div class="absolute inset-y-0 right-0 w-1/2 flex">
+<div class="w-1/3 h-full bg-secondary-container/20"></div>
+<div class="w-1/3 h-full bg-primary-container/40"></div>
+<div class="w-1/3 h-full bg-primary-container/85"></div>
+</div>
+<div class="relative z-10 flex justify-between items-start">
+<span class="font-label-code text-caption-xs text-primary font-bold uppercase">SWIPE_ARCH_4</span>
+<span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/15 backdrop-blur-md text-white font-bold border border-white/20">04/05</span>
+</div>
+<div class="relative z-10 max-w-[85%]">
+<p class="font-body-md text-caption-xs text-primary font-bold uppercase tracking-widest">ESTRUCTURA</p>
+<h4 class="font-headline-md text-headline-md font-bold text-white leading-tight mt-1">Fix Your Editorial Hook</h4>
+<div class="mt-pad-sm inline-flex items-center gap-pad-xs px-pad-sm py-1 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 font-label-code text-[10px]">
+<span class="">Desliza para leer</span>
+<span class="material-symbols-outlined text-caption-xs text-primary">arrow_downward</span>
+</div>
+</div>
+<div class="relative z-10 font-label-code text-[10px] text-white/70 flex justify-between">
+<span class="">DESIGN RESOURCE</span>
+<span class="">2026 EDITION</span>
+</div>
+</div>
+<!-- Slide 5: Crimson Tide Spec (Reference 5) -->
+<div class="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-b from-[#110c14] to-[#45102a] border border-white/15 shadow-xl flex flex-col justify-between p-pad-lg transition-transform hover:-translate-y-1">
+<div class="relative z-10 flex justify-between items-start">
+<span class="font-headline-lg text-headline-lg font-black text-secondary">05</span>
+<span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/15 backdrop-blur-md text-white font-bold border border-white/20">05/05</span>
+</div>
+<div class="relative z-10">
+<h4 class="font-headline-md text-title-sm text-white font-bold">Crimson Tide</h4>
+<div class="mt-pad-sm grid grid-cols-2 gap-pad-xs font-label-code text-[10px]">
+<div class="flex items-center gap-1.5 p-1.5 rounded-DEFAULT bg-black/40 backdrop-blur-md border border-white/10">
+<span class="w-3 h-3 rounded-xs bg-[#642B73]"></span>
+<span class="text-white/80">#642B73</span>
+</div>
+<div class="flex items-center gap-1.5 p-1.5 rounded-DEFAULT bg-black/40 backdrop-blur-md border border-white/10">
+<span class="w-3 h-3 rounded-xs bg-[#C6426E]"></span>
+<span class="text-white/80">#C6426E</span>
+</div>
+</div>
+<div class="mt-pad-sm w-full h-14 rounded-lg bg-gradient-to-r from-[#642B73] via-[#C6426E] to-[#FF5500] shadow-md"></div>
+</div>
+<div class="relative z-10 flex justify-between items-center pt-pad-xs">
+<div class="flex items-center gap-pad-xs">
+<span class="w-4 h-4 rounded-full bg-secondary-container"></span>
+<span class="font-label-code text-[10px] text-white/80">@swipeforge</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-white shadow-sm">
+<span class="material-symbols-outlined text-caption-xs">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- LIVE CAROUSEL PLAYGROUND SECTION -->
+<section class="w-full py-safezone-block border-y border-white/10 relative" id="playground">
+<div class="max-w-7xl mx-auto px-pad-lg flex flex-col gap-pad-xl">
+<!-- Section Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-pad-md">
+<div>
+<div class="font-label-caps text-label-caps text-primary uppercase tracking-widest flex items-center gap-1.5">
+<span class="">✦</span> INTERACTIVE LAB
+</div>
+<h2 class="font-headline-lg text-headline-lg text-white font-bold">Playground Visual del Carrusel</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xl mt-pad-xs">
+            Selecciona arquetipos editoriales probados y prueba las zonas de seguridad de plataformas en milisegundos.
+          </p>
+</div>
+<!-- Safe Zone Toggle & Grid Guides -->
+<div class="flex flex-wrap items-center gap-pad-sm">
+<button class="px-pad-md py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 backdrop-blur-md border border-white/15 text-white font-label-code text-caption-xs flex items-center gap-pad-xs shadow-sm transition-all" id="toggle-safezones" onclick="document.getElementById('safezone-overlay').classList.toggle('hidden'); this.classList.toggle('bg-primary-container'); this.classList.toggle('border-primary');">
+<span class="material-symbols-outlined text-caption-xs">visibility</span>
+<span class="">Overlay Zonas Seguras</span>
+</button>
+<button class="px-pad-md py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 backdrop-blur-md border border-white/15 text-white font-label-code text-caption-xs flex items-center gap-pad-xs shadow-sm hover:text-primary transition-all" id="toggle-swissgrid" onclick="document.getElementById('swiss-grid-overlay').classList.toggle('hidden');">
+<span class="material-symbols-outlined text-caption-xs">grid_4x4</span>
+<span class="">Grid Suizo (8 Col)</span>
+</button>
+</div>
+</div>
+<!-- Playground Workspace Canvas -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-pad-lg">
+<!-- Left: Archetype Selector Tabs -->
+<div class="lg:col-span-4 flex flex-col gap-pad-sm">
+<div class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-pad-xs">Arquetipos Editoriales</div>
+<button class="archetype-btn p-pad-md rounded-2xl frosted-panel text-left flex flex-col gap-pad-xs shadow-sm transition-all hover:bg-white/[0.08] group active-archetype ring-1 ring-primary/60" onclick="updateSlide('hook')">
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-title-sm font-bold text-white group-hover:text-primary">01. Hook Masivo</span>
+<span class="font-label-code text-[10px] px-2 py-0.5 rounded-DEFAULT bg-primary-container text-white font-bold">ALTO IMPACTO</span>
+</div>
+<p class="font-body-md text-caption-xs text-on-surface-variant">Frase contundente, tipografía 56px, contraste térmico inmediato para retener el scroll.</p>
+</button>
+<button class="archetype-btn p-pad-md rounded-2xl frosted-panel text-left flex flex-col gap-pad-xs shadow-sm transition-all hover:bg-white/[0.08] group" onclick="updateSlide('context')">
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-title-sm font-bold text-white group-hover:text-primary">02. Contexto Técnico</span>
+<span class="font-label-code text-[10px] px-2 py-0.5 rounded-DEFAULT bg-white/10 text-white">PROFUNDIDAD</span>
+</div>
+<p class="font-body-md text-caption-xs text-on-surface-variant">Diagrama Swiss, microetiquetas monospaciadas y columnas con sangrado visual.</p>
+</button>
+<button class="archetype-btn p-pad-md rounded-2xl frosted-panel text-left flex flex-col gap-pad-xs shadow-sm transition-all hover:bg-white/[0.08] group" onclick="updateSlide('stat')">
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-title-sm font-bold text-white group-hover:text-primary">03. Dato Clave / Stat</span>
+<span class="font-label-code text-[10px] px-2 py-0.5 rounded-DEFAULT bg-secondary-container text-white font-bold">MÉTRICA</span>
+</div>
+<p class="font-body-md text-caption-xs text-on-surface-variant">Cifra gigantesca con micrográfico en anillo SVG y punto de ruptura empírico.</p>
+</button>
+<button class="archetype-btn p-pad-md rounded-2xl frosted-panel text-left flex flex-col gap-pad-xs shadow-sm transition-all hover:bg-white/[0.08] group" onclick="updateSlide('ab')">
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-title-sm font-bold text-white group-hover:text-primary">04. Comparativa A / B</span>
+<span class="font-label-code text-[10px] px-2 py-0.5 rounded-DEFAULT bg-white/10 text-white">CONTRASTE</span>
+</div>
+<p class="font-body-md text-caption-xs text-on-surface-variant">División simétrica estricta: Mala práctica vs. Enfoque SwipeForge escalable.</p>
+</button>
+<button class="archetype-btn p-pad-md rounded-2xl frosted-panel text-left flex flex-col gap-pad-xs shadow-sm transition-all hover:bg-white/[0.08] group" onclick="updateSlide('cta')">
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-title-sm font-bold text-white group-hover:text-primary">05. Call to Action Final</span>
+<span class="font-label-code text-[10px] px-2 py-0.5 rounded-DEFAULT bg-primary-container text-white font-bold">CONVERSIÓN</span>
+</div>
+<p class="font-body-md text-caption-xs text-on-surface-variant">Botón de acción térmica con swatch hexagonal y comando de guardado rápido.</p>
+</button>
+</div>
+<!-- Center / Right: Interactive Live Canvas Viewport with Frosted Agent SMM backdrop -->
+<div class="lg:col-span-8 flex flex-col items-center justify-center p-pad-lg rounded-3xl frosted-panel border border-white/15 shadow-2xl relative overflow-hidden">
+<!-- Stage Toolbar -->
+<div class="w-full max-w-md flex justify-between items-center mb-pad-md px-pad-sm font-label-code text-caption-xs text-on-surface-variant">
+<div class="flex items-center gap-pad-xs">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="text-white font-medium">RENDER CANVAS 1080 × 1350 px (4:5)</span>
+</div>
+<span class="text-white/60">SCALE: 45%</span>
+</div>
+<!-- The Live Slide Box -->
+<div class="relative w-full max-w-md aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-b from-[#0a0b12] via-[#200e1b] to-[#7a1843] border border-white/20 shadow-2xl transition-all duration-300" id="live-stage">
+<!-- Architectural column pinstripes inside live stage -->
+<div class="absolute inset-0 grid grid-cols-6 pointer-events-none opacity-15">
+<div class="border-r border-white/40"></div>
+<div class="border-r border-white/40"></div>
+<div class="border-r border-white/40"></div>
+<div class="border-r border-white/40"></div>
+<div class="border-r border-white/40"></div>
+</div>
+<!-- Optional Swiss Grid Overlay -->
+<div class="hidden absolute inset-0 z-30 pointer-events-none grid grid-cols-8 gap-2 p-pad-lg opacity-25" id="swiss-grid-overlay">
+<div class="h-full bg-primary/30"></div>
+<div class="h-full bg-primary/30"></div>
+<div class="h-full bg-primary/30"></div>
+<div class="h-full bg-primary/30"></div>
+<div class="h-full bg-primary/30"></div>
+<div class="h-full bg-primary/30"></div>
+<div class="h-full bg-primary/30"></div>
+<div class="h-full bg-primary/30"></div>
+</div>
+<!-- Optional Safe-Zone Overlays -->
+<div class="hidden absolute inset-0 z-40 pointer-events-none flex flex-col justify-between p-pad-sm" id="safezone-overlay">
+<div class="w-full h-12 bg-secondary-container/30 backdrop-blur-sm border border-secondary/40 rounded-lg flex items-center justify-center font-label-code text-[10px] text-white font-bold uppercase">
+                Zona Oculta de Cabecera (Header / Perfil)
+              </div>
+<div class="w-full h-16 bg-primary-container/30 backdrop-blur-sm border border-primary/40 rounded-lg flex items-center justify-center font-label-code text-[10px] text-white font-bold uppercase">
+                Zona Botones &amp; Subtítulo de Feed
+              </div>
+</div>
+<!-- Dynamic Content Area -->
+<div class="relative w-full h-full p-pad-xl flex flex-col justify-between overflow-hidden" id="slide-inner-content">
+<!-- Content dynamically swapped by script below -->
+<div class="flex justify-between items-start">
+<span class="font-label-code text-caption-xs text-primary font-bold uppercase tracking-wider">SWIPEFORGE // MATRIX</span>
+<span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/10 backdrop-blur-md text-white border border-white/15">SLIDE 01</span>
+</div>
+<div class="my-auto flex flex-col gap-pad-md">
+<div class="w-12 h-1 bg-gradient-to-r from-primary-container to-secondary-container rounded-full"></div>
+<h3 class="font-display-xl text-headline-lg font-extrabold text-white leading-tight">
+                  Por qué el 90% de los carruseles mueren en el slide 2.
+                </h3>
+<p class="font-body-md text-body-md text-white/80 leading-relaxed">
+                  El salto de fricción cognitivo entre la portada y el cuerpo editorial requiere una promesa estructurada.
+                </p>
+</div>
+<div class="flex justify-between items-center pt-pad-md font-label-code text-caption-xs text-white/70 border-t border-white/10">
+<span class="">ESTRUCTURA DE HOOK A/B</span>
+<span class="text-primary font-bold">DESLIZA PARA APRENDER →</span>
+</div>
+</div>
+</div>
+<!-- Bottom Action Buttons for Live Stage -->
+<div class="mt-pad-lg flex items-center gap-pad-md">
+<button class="px-pad-md py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/15 backdrop-blur-md border border-white/15 text-white font-label-code text-caption-xs flex items-center gap-pad-xs shadow-sm transition-all" onclick="alert('Exportando slide activo a 4K PNG (3240x4050)...')">
+<span class="material-symbols-outlined text-caption-xs text-primary">download</span>
+<span class="">Exportar PNG Retina (4x)</span>
+</button>
+<button class="px-pad-md py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/15 backdrop-blur-md border border-white/15 text-white font-label-code text-caption-xs flex items-center gap-pad-xs shadow-sm transition-all" onclick="navigator.clipboard.writeText(document.getElementById('slide-inner-content').outerHTML); alert('HTML del slide copiado al portapapeles!');">
+<span class="material-symbols-outlined text-caption-xs text-secondary">code</span>
+<span class="">Copiar HTML Crudo</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- BENTO GRID: CAPACIDADES CLAVE -->
+<section class="w-full py-safezone-block relative">
+<div class="max-w-7xl mx-auto px-pad-lg flex flex-col gap-pad-xl">
+<div class="flex flex-col gap-pad-xs">
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-wider flex items-center gap-1">
+<span class="">✦</span> MOTOR DE PRODUCCIÓN
+</span>
+<h2 class="font-headline-lg text-headline-lg text-white font-bold">Ingeniería para Creadores con Rigor Visual</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+          Construido para desarrolladores, directores de arte y consultores que se niegan a usar editores de arrastrar y soltar lentos.
+        </p>
+</div>
+<!-- Bento Matrix -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-pad-md">
+<!-- Bento 1: Raw HTML/CSS (Span 7) -->
+<div class="md:col-span-7 p-pad-xl rounded-3xl frosted-panel flex flex-col justify-between gap-pad-lg group hover:border-white/20 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2.5 rounded-xl bg-white/[0.08] text-primary shadow-sm border border-white/10">
+<span class="material-symbols-outlined text-title-sm">html</span>
+</div>
+<span class="font-label-code text-caption-xs text-on-surface-variant">01 // DOM_DIRECTO</span>
+</div>
+<div class="flex flex-col gap-pad-sm">
+<h3 class="font-headline-md text-title-sm text-white font-bold">Lienzo Puro HTML &amp; Tailwind CSS</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Tus carruseles no están secuestrados en formatos propietarios. Cada slide es un nodo HTML real, con autocompletado en tu IDE favorito y compatibilidad directa con tu sistema de diseño.
+            </p>
+</div>
+<!-- Code Mockup Preview Inside Card -->
+<div class="p-pad-md rounded-2xl bg-[#06070a]/90 backdrop-blur-md border border-white/10 font-label-code text-caption-xs text-on-surface-variant shadow-inner overflow-hidden">
+<div class="flex items-center gap-1.5 pb-2 text-[10px] text-white/40">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="w-2 h-2 rounded-full bg-white/30"></span>
+<span class="ml-2 text-white/90">SlideWrapper.tsx</span>
+</div>
+<div class="text-white">&lt;<span class="text-primary">Slide</span> <span class="text-secondary">ratio</span>=<span class="text-primary-fixed">"4:5"</span> <span class="text-secondary">theme</span>=<span class="text-primary-fixed">"thermal-dark"</span>&gt;</div>
+<div class="pl-4 text-on-surface-variant">&lt;<span class="text-primary">EditorialHeader</span>&gt;01 / DIAGRAMA DE RED&lt;/<span class="text-primary">EditorialHeader</span>&gt;</div>
+<div class="pl-4 text-on-surface-variant">&lt;<span class="text-primary">WarpGradient</span> <span class="text-secondary">angle</span>={135} <span class="text-secondary">stops</span>={[<span class="text-primary-fixed">'#FF5500'</span>, <span class="text-primary-fixed">'#D82B6B'</span>]} /&gt;</div>
+<div class="text-white">&lt;/<span class="text-primary">Slide</span>&gt;</div>
+</div>
+</div>
+<!-- Bento 2: Hook A/B Lab (Span 5) -->
+<div class="md:col-span-5 p-pad-xl rounded-3xl frosted-panel flex flex-col justify-between gap-pad-lg group hover:border-white/20 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2.5 rounded-xl bg-white/[0.08] text-secondary shadow-sm border border-white/10">
+<span class="material-symbols-outlined text-title-sm">compare_arrows</span>
+</div>
+<span class="font-label-code text-caption-xs text-on-surface-variant">02 // A/B_SYNTH</span>
+</div>
+<div class="flex flex-col gap-pad-xs">
+<h3 class="font-headline-md text-title-sm text-white font-bold">Laboratorio de Hooks A/B</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Genera 3 arquetipos de portada en un clic: Basado en dolor, Contrarian o Passo-a-paso técnico.
+            </p>
+</div>
+<!-- Mini comparison visual -->
+<div class="grid grid-cols-2 gap-pad-sm">
+<div class="p-pad-sm rounded-xl bg-white/[0.04] border border-white/10 flex flex-col gap-1">
+<span class="font-label-code text-[10px] text-primary uppercase font-bold">VARIANTE_A</span>
+<span class="font-headline-md text-caption-xs text-white font-semibold">"El error de arquitectura en Redis"</span>
+<span class="font-label-code text-[10px] text-secondary font-medium">Retención 82%</span>
+</div>
+<div class="p-pad-sm rounded-xl bg-white/[0.02] border border-white/5 flex flex-col gap-1 opacity-75">
+<span class="font-label-code text-[10px] text-on-surface-variant uppercase">VARIANTE_B</span>
+<span class="font-headline-md text-caption-xs text-on-surface-variant">"Cómo configurar Redis rápido"</span>
+<span class="font-label-code text-[10px] text-on-surface-variant">Retención 31%</span>
+</div>
+</div>
+</div>
+<!-- Bento 3: Calidad Automática & Safe Zones (Span 4) -->
+<div class="md:col-span-4 p-pad-xl rounded-3xl frosted-panel flex flex-col justify-between gap-pad-md group hover:border-white/20 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2.5 rounded-xl bg-white/[0.08] text-primary shadow-sm border border-white/10">
+<span class="material-symbols-outlined text-title-sm">verified_user</span>
+</div>
+<span class="font-label-code text-caption-xs text-on-surface-variant">03 // LINTING</span>
+</div>
+<div>
+<h3 class="font-headline-md text-title-sm text-white font-bold">Linter de Redes y WCAG AAA</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-pad-xs">
+              Alerta instantánea si tu texto colisiona con el botón "Seguir" de Instagram o si el contraste de color cae bajo 7.1:1.
+            </p>
+</div>
+<div class="flex items-center gap-pad-sm p-pad-sm rounded-xl bg-white/[0.05] border border-white/10 text-primary font-label-code text-caption-xs">
+<span class="material-symbols-outlined text-title-sm">check_circle</span>
+<span class="text-white/90">WCAG AAA Passed (Contrast 11.4:1)</span>
+</div>
+</div>
+<!-- Bento 4: Multi-Core Export Engine (Span 4) -->
+<div class="md:col-span-4 p-pad-xl rounded-3xl frosted-panel flex flex-col justify-between gap-pad-md group hover:border-white/20 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2.5 rounded-xl bg-white/[0.08] text-secondary shadow-sm border border-white/10">
+<span class="material-symbols-outlined text-title-sm">bolt</span>
+</div>
+<span class="font-label-code text-caption-xs text-on-surface-variant">04 // EXPORT</span>
+</div>
+<div>
+<h3 class="font-headline-md text-title-sm text-white font-bold">Render N-Core en 250ms</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-pad-xs">
+              Motor headless basado en WebGL y Rust WASM. Genera paquetes ZIP con 10 slides a resolución 4K sin artefactos de compresión.
+            </p>
+</div>
+<!-- SVG Sparkline Micro-chart -->
+<div class="flex items-end justify-between gap-1.5 h-10 px-pad-sm pt-2 bg-white/[0.04] border border-white/10 rounded-xl">
+<span class="w-full bg-primary-container h-[40%] rounded-xs"></span>
+<span class="w-full bg-primary-container h-[65%] rounded-xs"></span>
+<span class="w-full bg-primary-container h-[50%] rounded-xs"></span>
+<span class="w-full bg-secondary-container h-[85%] rounded-xs"></span>
+<span class="w-full bg-secondary-container h-[95%] rounded-xs"></span>
+<span class="w-full bg-[#ff7733] h-[100%] rounded-xs"></span>
+</div>
+</div>
+<!-- Bento 5: Agent CLI & Markdown Support (Span 4) -->
+<div class="md:col-span-4 p-pad-xl rounded-3xl frosted-panel flex flex-col justify-between gap-pad-md group hover:border-white/20 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2.5 rounded-xl bg-white/[0.08] text-primary shadow-sm border border-white/10">
+<span class="material-symbols-outlined text-title-sm">terminal</span>
+</div>
+<span class="font-label-code text-caption-xs text-on-surface-variant">05 // AGENTIC_CLI</span>
+</div>
+<div>
+<h3 class="font-headline-md text-title-sm text-white font-bold">Markdown a Carrusel por CLI</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-pad-xs">
+              Pasa un archivo <code class="text-primary font-semibold">notes.md</code> o un prompt de LLM y genera secuencias completas listas para publicar.
+            </p>
+</div>
+<div class="font-label-code text-[11px] p-pad-sm rounded-xl bg-[#08090d] border border-white/10 text-primary-fixed">
+            $ swipeforge build --from thread.md
+          </div>
+</div>
+</div>
+</div>
+</section>
+<!-- DEVELOPER SECTION & ARCHITECTURE (CODE SIDE-BY-SIDE) -->
+<section class="w-full py-safezone-block border-y border-white/10 relative">
+<div class="max-w-7xl mx-auto px-pad-lg flex flex-col gap-pad-xl">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-pad-xl items-center">
+<!-- Text & Specs Column -->
+<div class="lg:col-span-5 flex flex-col gap-pad-md">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest flex items-center gap-1">
+<span class="">✦</span> PARA DESARROLLADORES
+</span>
+<h2 class="font-headline-lg text-headline-lg text-white font-bold leading-tight">
+            Trata a tus carruseles como código fuente auditable.
+          </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+            Sin suscripciones ocultas ni exportadores lentos. Versiona tus diapositivas en Git, automatiza en GitHub Actions e integra componentes React, Vue o Svelte con props tipadas.
+          </p>
+<div class="flex flex-col gap-pad-sm pt-pad-sm font-label-code text-body-md">
+<div class="flex items-center gap-pad-sm">
+<span class="material-symbols-outlined text-primary text-title-sm">check</span>
+<span class="text-white">Cero lock-in: Renderiza a Web Standards</span>
+</div>
+<div class="flex items-center gap-pad-sm">
+<span class="material-symbols-outlined text-primary text-title-sm">check</span>
+<span class="text-white">Soporte nativo para Tailwind v3 &amp; v4</span>
+</div>
+<div class="flex items-center gap-pad-sm">
+<span class="material-symbols-outlined text-primary text-title-sm">check</span>
+<span class="text-white">Integración con Cursor, VS Code y Neovim</span>
+</div>
+</div>
+</div>
+<!-- Code & Live Side-by-Side Panel -->
+<div class="lg:col-span-7 rounded-3xl frosted-panel border border-white/15 shadow-2xl overflow-hidden">
+<!-- Terminal Tabs Bar -->
+<div class="flex items-center justify-between px-pad-lg py-3 bg-white/[0.04] border-b border-white/10">
+<div class="flex items-center gap-pad-sm font-label-code text-caption-xs">
+<span class="px-pad-sm py-1 rounded-DEFAULT bg-white/10 text-primary font-bold border border-white/15">SlideEngine.vue</span>
+<span class="text-on-surface-variant hover:text-white cursor-pointer">theme.config.ts</span>
+<span class="text-on-surface-variant hover:text-white cursor-pointer">export.sh</span>
+</div>
+<span class="font-label-code text-caption-xs text-on-surface-variant">UTF-8 // ESM</span>
+</div>
+<!-- Code Body -->
+<div class="p-pad-lg font-label-code text-label-code text-on-surface-variant overflow-x-auto leading-relaxed bg-[#07080c]/60">
+<pre><code><span class="text-white/40">// 1. Definición declarativa de Slide con Grid Suizo</span>
+<span class="text-secondary font-bold">export const</span> <span class="text-primary">CrimsonSlide</span> = <span class="text-white">defineSlide</span>({
+  <span class="text-primary">ratio</span>: <span class="text-secondary">'4:5'</span>,
+  <span class="text-primary">aspect</span>: [<span class="text-primary-fixed">1080</span>, <span class="text-primary-fixed">1350</span>],
+  <span class="text-primary">palette</span>: {
+    <span class="text-primary">primary</span>: <span class="text-secondary">'#FF5500'</span>,
+    <span class="text-primary">tide</span>: <span class="text-secondary">'#D82B6B'</span>,
+    <span class="text-primary">substrate</span>: <span class="text-secondary">'#08090D'</span>
+  },
+  <span class="text-primary">render</span>: ({ index, total }) =&gt; (
+    <span class="text-primary-container">&lt;div</span> <span class="text-white">class</span>=<span class="text-primary-fixed">"relative w-full h-full p-8 flex flex-col justify-between"</span><span class="text-primary-container">&gt;</span>
+      <span class="text-primary-container">&lt;div</span> <span class="text-white">class</span>=<span class="text-primary-fixed">"flex justify-between font-mono text-xs uppercase"</span><span class="text-primary-container">&gt;</span>
+        <span class="text-white">&lt;span&gt;SWIPEFORGE ARCHITECTURE&lt;/span&gt;</span>
+        <span class="text-white">&lt;span&gt;${index} / ${total}&lt;/span&gt;</span>
+      <span class="text-primary-container">&lt;/div&gt;</span>
+      <span class="text-primary-container">&lt;h2</span> <span class="text-white">class</span>=<span class="text-primary-fixed">"text-4xl font-bold tracking-tight text-white"</span><span class="text-primary-container">&gt;</span>
+        Sistemas Escalables de Publicación
+      <span class="text-primary-container">&lt;/h2&gt;</span>
+      <span class="text-primary-container">&lt;PaletteSwatch</span> <span class="text-white">from</span>=<span class="text-secondary">"#D82B6B"</span> <span class="text-white">to</span>=<span class="text-secondary">"#FF5500"</span> <span class="text-primary-container">/&gt;</span>
+    <span class="text-primary-container">&lt;/div&gt;</span>
+  )
+});</code></pre>
+</div>
+<!-- Execution Bar status -->
+<div class="px-pad-lg py-2.5 bg-[#06070a]/90 flex items-center justify-between font-label-code text-caption-xs border-t border-white/10">
+<span class="flex items-center gap-pad-xs text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+<span class="">Headless Worker: 5/5 slides compilados en 189ms</span>
+</span>
+<span class="text-on-surface-variant">0 ERRORS // ZERO WARNINGS</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- LAYOUTS SHOWCASE HORIZONTAL CATALOG -->
+<section class="w-full py-safezone-block relative">
+<div class="max-w-7xl mx-auto px-pad-lg flex flex-col gap-pad-xl">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-pad-md">
+<div>
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-widest flex items-center gap-1">
+<span class="">✦</span> SISTEMAS PRECONFIGURADOS
+</span>
+<h2 class="font-headline-lg text-headline-lg text-white font-bold">Biblioteca de Layouts Editoriales</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md">
+          Plantillas estructurales con jerarquía tipográfica contrastada listas para importar a tu proyecto.
+        </p>
+</div>
+<!-- Layouts Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-pad-lg">
+<!-- Template 1: The Essay -->
+<div class="p-pad-lg rounded-3xl frosted-panel flex flex-col justify-between gap-pad-lg group hover:border-white/30 transition-all">
+<div class="aspect-[4/5] rounded-2xl bg-[#08090f] p-pad-md flex flex-col justify-between relative overflow-hidden border border-white/10 shadow-inner">
+<span class="font-label-code text-[10px] text-white/60 uppercase">LAYOUT // 01</span>
+<div class="space-y-2">
+<div class="w-8 h-0.5 bg-primary"></div>
+<p class="font-display-xl text-body-lg font-bold text-white leading-tight">The Technical Essay</p>
+<p class="font-body-md text-[11px] text-on-surface-variant line-clamp-3">Párrafos densos, tipografía de lectura Geist y capitulares amplificadas.</p>
+</div>
+<div class="font-label-code text-[9px] text-white/40 flex justify-between">
+<span class="">LEST-01</span>
+<span class="">10 SLIDES</span>
+</div>
+</div>
+<div>
+<h4 class="font-headline-md text-title-sm text-white font-bold">The Technical Essay</h4>
+<p class="font-body-md text-caption-xs text-on-surface-variant mt-1">Ideal para desglosar análisis de arquitectura o whitepapers.</p>
+</div>
+</div>
+<!-- Template 2: The Visual Benchmark -->
+<div class="p-pad-lg rounded-3xl frosted-panel flex flex-col justify-between gap-pad-lg group hover:border-white/30 transition-all">
+<div class="aspect-[4/5] rounded-2xl bg-gradient-to-br from-[#0c0d16] to-[#45122e] p-pad-md flex flex-col justify-between relative overflow-hidden border border-white/15 shadow-inner">
+<span class="font-label-code text-[10px] text-primary uppercase font-semibold">LAYOUT // 02</span>
+<div class="space-y-2 relative z-10">
+<span class="font-headline-lg text-headline-lg font-black text-white">3.8×</span>
+<p class="font-headline-md text-title-sm font-semibold text-white">Benchmark Matrix</p>
+<div class="w-full bg-white/15 h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-primary-container to-secondary-container w-3/4 h-full"></div>
+</div>
+</div>
+<div class="font-label-code text-[9px] text-white/50 flex justify-between relative z-10">
+<span class="">METRIC-02</span>
+<span class="">5 SLIDES</span>
+</div>
+</div>
+<div>
+<h4 class="font-headline-md text-title-sm text-white font-bold">The Visual Benchmark</h4>
+<p class="font-body-md text-caption-xs text-on-surface-variant mt-1">Para comparativas de rendimiento, latencia o métricas de producto.</p>
+</div>
+</div>
+<!-- Template 3: The Code Explainer -->
+<div class="p-pad-lg rounded-3xl frosted-panel flex flex-col justify-between gap-pad-lg group hover:border-white/30 transition-all">
+<div class="aspect-[4/5] rounded-2xl bg-[#06070a] p-pad-md flex flex-col justify-between relative overflow-hidden border border-white/10 shadow-inner font-label-code">
+<span class="text-[10px] text-secondary uppercase font-semibold">LAYOUT // 03</span>
+<div class="p-pad-xs rounded-xl bg-white/[0.04] border border-white/10 text-[10px] text-on-surface-variant space-y-1">
+<div class="text-primary">const query = await db</div>
+<div class="text-white pl-2">.select()</div>
+<div class="text-secondary pl-2">.from(tokens)</div>
+</div>
+<div class="text-[9px] text-white/40 flex justify-between">
+<span class="">SYNTAX-03</span>
+<span class="">7 SLIDES</span>
+</div>
+</div>
+<div>
+<h4 class="font-headline-md text-title-sm text-white font-bold">The Code Explainer</h4>
+<p class="font-body-md text-caption-xs text-on-surface-variant mt-1">Bloques terminales ultra limpios con notas de línea y callouts.</p>
+</div>
+</div>
+<!-- Template 4: The Matrix / Spec Sheet -->
+<div class="p-pad-lg rounded-3xl frosted-panel flex flex-col justify-between gap-pad-lg group hover:border-white/30 transition-all">
+<div class="aspect-[4/5] rounded-2xl bg-gradient-to-t from-[#8d1d4d]/80 via-[#260c1c] to-[#08090f] p-pad-md flex flex-col justify-between relative overflow-hidden border border-white/20 shadow-inner">
+<span class="font-label-code text-[10px] text-white/70 uppercase">LAYOUT // 04</span>
+<div class="space-y-1">
+<div class="flex items-center gap-1 font-label-code text-[9px] text-primary">
+<span class="">✦</span><span class="">SWISS PALETTE</span>
+</div>
+<p class="font-headline-md text-title-sm font-bold text-white">Crimson Spec</p>
+<div class="h-8 w-full rounded-lg bg-gradient-to-r from-[#642B73] via-[#C6426E] to-[#FF5500] shadow-sm"></div>
+</div>
+<div class="font-label-code text-[9px] text-white/60 flex justify-between">
+<span class="">TOKEN-04</span>
+<span class="">6 SLIDES</span>
+</div>
+</div>
+<div>
+<h4 class="font-headline-md text-title-sm text-white font-bold">The Matrix &amp; Color Spec</h4>
+<p class="font-body-md text-caption-xs text-on-surface-variant mt-1">Presentación de tokens de diseño, tipografías y reglas de marca.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- DESIGN TOKENS & PALETTE BAR -->
+<section class="w-full py-safezone-block border-y border-white/10 relative">
+<div class="max-w-7xl mx-auto px-pad-lg flex flex-col gap-pad-lg">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-pad-md">
+<div>
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-widest flex items-center gap-1">
+<span class="">✦</span> SWISS DESIGN TOKENS
+</span>
+<h3 class="font-headline-md text-headline-md text-white font-bold">Paleta Térmica SwipeForge</h3>
+</div>
+<p class="font-label-code text-caption-xs text-on-surface-variant">HAZ CLIC EN UN SWATCH PARA COPIAR EL VALOR HEX</p>
+</div>
+<!-- Tactile Token Pills Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-pad-md">
+<button class="p-pad-md rounded-2xl frosted-panel hover:bg-white/10 flex flex-col gap-pad-sm shadow-sm transition-all text-left group" onclick="navigator.clipboard.writeText('#08090D'); alert('Copiado: #08090D');">
+<div class="w-full h-12 rounded-xl bg-[#08090D] border border-white/15 shadow-inner"></div>
+<div>
+<span class="font-label-caps text-label-caps text-white uppercase group-hover:text-primary transition-colors">Substrate</span>
+<span class="block font-label-code text-caption-xs text-primary">#08090D</span>
+</div>
+</button>
+<button class="p-pad-md rounded-2xl frosted-panel hover:bg-white/10 flex flex-col gap-pad-sm shadow-sm transition-all text-left group" onclick="navigator.clipboard.writeText('#181A24'); alert('Copiado: #181A24');">
+<div class="w-full h-12 rounded-xl bg-[#181A24] border border-white/15 shadow-inner"></div>
+<div>
+<span class="font-label-caps text-label-caps text-white uppercase group-hover:text-primary transition-colors">Surface High</span>
+<span class="block font-label-code text-caption-xs text-primary">#181A24</span>
+</div>
+</button>
+<button class="p-pad-md rounded-2xl frosted-panel hover:bg-white/10 flex flex-col gap-pad-sm shadow-sm transition-all text-left group" onclick="navigator.clipboard.writeText('#FF5500'); alert('Copiado: #FF5500');">
+<div class="w-full h-12 rounded-xl bg-[#FF5500] shadow-[0_0_16px_rgba(255,85,0,0.5)]"></div>
+<div>
+<span class="font-label-caps text-label-caps text-white uppercase group-hover:text-primary transition-colors">Forge Orange</span>
+<span class="block font-label-code text-caption-xs text-primary">#FF5500</span>
+</div>
+</button>
+<button class="p-pad-md rounded-2xl frosted-panel hover:bg-white/10 flex flex-col gap-pad-sm shadow-sm transition-all text-left group" onclick="navigator.clipboard.writeText('#D82B6B'); alert('Copiado: #D82B6B');">
+<div class="w-full h-12 rounded-xl bg-[#D82B6B] shadow-[0_0_16px_rgba(216,43,107,0.5)]"></div>
+<div>
+<span class="font-label-caps text-label-caps text-white uppercase group-hover:text-primary transition-colors">Crimson Warm</span>
+<span class="block font-label-code text-caption-xs text-primary">#D82B6B</span>
+</div>
+</button>
+<button class="p-pad-md rounded-2xl frosted-panel hover:bg-white/10 flex flex-col gap-pad-sm shadow-sm transition-all text-left group" onclick="navigator.clipboard.writeText('#642B73'); alert('Copiado: #642B73');">
+<div class="w-full h-12 rounded-xl bg-[#642B73] shadow-[0_0_16px_rgba(100,43,115,0.5)]"></div>
+<div>
+<span class="font-label-caps text-label-caps text-white uppercase group-hover:text-primary transition-colors">Crimson Deep</span>
+<span class="block font-label-code text-caption-xs text-primary">#642B73</span>
+</div>
+</button>
+<button class="p-pad-md rounded-2xl frosted-panel hover:bg-white/10 flex flex-col gap-pad-sm shadow-sm transition-all text-left group" onclick="navigator.clipboard.writeText('#F4F4F6'); alert('Copiado: #F4F4F6');">
+<div class="w-full h-12 rounded-xl bg-[#F4F4F6] shadow-sm"></div>
+<div>
+<span class="font-label-caps text-label-caps text-white uppercase group-hover:text-primary transition-colors">Pure Glyph</span>
+<span class="block font-label-code text-caption-xs text-primary">#F4F4F6</span>
+</div>
+</button>
+</div>
+</div>
+</section>
+<!-- BOTTOM CALL TO ACTION -->
+<section class="w-full py-safezone-block relative">
+<div class="max-w-5xl mx-auto px-pad-lg">
+<div class="relative rounded-3xl p-pad-xl bg-gradient-to-b from-[#11121d]/85 to-[#2f0e21]/80 backdrop-blur-2xl border border-white/20 overflow-hidden shadow-2xl flex flex-col items-center text-center gap-pad-lg">
+<!-- Radial flare from behind button -->
+<div class="absolute -bottom-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-t from-[#ff5500] to-[#d82b6b] rounded-full blur-[110px] opacity-40 pointer-events-none"></div>
+<div class="inline-flex items-center gap-pad-sm px-pad-md py-1 rounded-full bg-white/10 backdrop-blur-md font-label-code text-caption-xs text-white border border-white/15">
+<span class="font-bold text-primary">v1.4 READY</span>
+<span class="text-white/30">/</span>
+<span class="">APRENDE EN 5 MINUTOS</span>
+</div>
+<h2 class="font-display-xl text-headline-lg md:text-display-xl text-white font-extrabold tracking-tight max-w-2xl">
+          Comienza a forjar carruseles que los diseñadores recuerdan.
+        </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl leading-relaxed">
+          Instala el CLI localmente en segundos o clona el template de inicio con Tailwind y Astro configurados.
+        </p>
+<div class="flex flex-col sm:flex-row gap-pad-md items-center w-full justify-center relative z-10">
+<a class="w-full sm:w-auto px-pad-xl py-3.5 rounded-xl bg-gradient-to-r from-primary-container via-secondary-container to-[#c6426e] text-white font-headline-md text-body-md font-bold shadow-[0_0_24px_rgba(255,85,0,0.4)] hover:shadow-[0_0_36px_rgba(216,43,107,0.7)] hover:scale-[1.01] transition-all" href="#">
+            Descargar Starter Kit Gratis
+          </a>
+<a class="w-full sm:w-auto px-pad-lg py-3.5 rounded-xl bg-white/[0.08] hover:bg-white/15 backdrop-blur-md border border-white/15 text-white font-headline-md text-body-md font-semibold transition-all" href="#">
+            Leer Especificación Técnica
+          </a>
+</div>
+<div class="font-label-code text-[11px] text-white/60 relative z-10">
+          Licencia MIT • Sin telemetría • Funciona 100% Offline
+        </div>
+</div>
+</div>
+</section>
+</div>
+<script>
+  // Dynamic Playground Slide Archetype Controller
+  function updateSlide(type) {
+    const container = document.getElementById('slide-inner-content');
+    if (!container) return;
+
+    // Remove active styling from all archetype buttons
+    document.querySelectorAll('.archetype-btn').forEach(btn => {
+      btn.classList.remove('ring-1', 'ring-primary/60');
+    });
+
+    if (type === 'hook') {
+      container.innerHTML = `
+        <div class="flex justify-between items-start">
+          <span class="font-label-code text-caption-xs text-primary font-bold uppercase tracking-wider">SWIPEFORGE // MATRIX</span>
+          <span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/10 backdrop-blur-md text-white border border-white/15">SLIDE 01</span>
+        </div>
+        <div class="my-auto flex flex-col gap-pad-md">
+          <div class="w-12 h-1 bg-gradient-to-r from-primary-container to-secondary-container rounded-full"></div>
+          <h3 class="font-display-xl text-headline-lg font-extrabold text-white leading-tight">
+            Por qué el 90% de los carruseles mueren en el slide 2.
+          </h3>
+          <p class="font-body-md text-body-md text-white/80 leading-relaxed">
+            El salto de fricción cognitivo entre la portada y el cuerpo editorial requiere una promesa estructurada.
+          </p>
+        </div>
+        <div class="flex justify-between items-center pt-pad-md font-label-code text-caption-xs text-white/70 border-t border-white/10">
+          <span>ESTRUCTURA DE HOOK A/B</span>
+          <span class="text-primary font-bold">DESLIZA PARA APRENDER →</span>
+        </div>
+      `;
+    } else if (type === 'context') {
+      container.innerHTML = `
+        <div class="flex justify-between items-start">
+          <span class="font-label-code text-caption-xs text-secondary font-bold uppercase tracking-wider">ANÁLISIS ESTRUCTURAL</span>
+          <span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/10 backdrop-blur-md text-white border border-white/15">SLIDE 02</span>
+        </div>
+        <div class="my-auto flex flex-col gap-pad-md">
+          <div class="grid grid-cols-2 gap-pad-sm font-label-code text-[11px]">
+            <div class="p-pad-sm rounded-lg bg-white/10 border border-white/15 text-primary font-bold">ANCLAJE: 1350px</div>
+            <div class="p-pad-sm rounded-lg bg-white/10 border border-white/15 text-secondary font-bold">SAFE: 1100px</div>
+          </div>
+          <h3 class="font-headline-lg text-headline-md font-bold text-white leading-snug">
+            La cuadrícula suiza no es una limitación; es un acelerador visual.
+          </h3>
+          <p class="font-body-md text-body-md text-white/80">
+            Al definir guías fijas de 8 columnas, la atención del usuario se sincroniza con el ritmo de lectura natural.
+          </p>
+        </div>
+        <div class="flex justify-between items-center pt-pad-md font-label-code text-caption-xs text-white/70 border-t border-white/10">
+          <span>RATIO NATIVO 4:5</span>
+          <span>02 / 05</span>
+        </div>
+      `;
+    } else if (type === 'stat') {
+      container.innerHTML = `
+        <div class="flex justify-between items-start">
+          <span class="font-label-code text-caption-xs text-primary font-bold uppercase tracking-wider">MÉTRICA VERIFICADA</span>
+          <span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/10 backdrop-blur-md text-white border border-white/15">SLIDE 03</span>
+        </div>
+        <div class="my-auto flex flex-col gap-pad-sm">
+          <span class="font-display-xl text-[68px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ff7733] to-[#ff4071] drop-shadow-sm">+328%</span>
+          <h3 class="font-headline-md text-title-sm font-bold text-white">
+            Tasa de lectura completa en publicaciones con tokens térmicos.
+          </h3>
+          <p class="font-body-md text-caption-xs text-white/80">
+            Medido a través de 14,000 impresiones comparando tipografía grotesque suiza vs sans-serif genérica.
+          </p>
+        </div>
+        <div class="flex justify-between items-center pt-pad-md font-label-code text-caption-xs text-white/70 border-t border-white/10">
+          <span>AUDITORÍA EXTERNA</span>
+          <span class="text-primary font-bold">DATA-SOURCE-2026</span>
+        </div>
+      `;
+    } else if (type === 'ab') {
+      container.innerHTML = `
+        <div class="flex justify-between items-start">
+          <span class="font-label-code text-caption-xs text-secondary font-bold uppercase tracking-wider">COMPARATIVA A/B</span>
+          <span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/10 backdrop-blur-md text-white border border-white/15">SLIDE 04</span>
+        </div>
+        <div class="my-auto grid grid-cols-2 gap-pad-sm">
+          <div class="p-pad-md rounded-xl bg-black/40 border border-white/10 flex flex-col justify-between">
+            <span class="font-label-code text-[10px] text-error font-bold">CANVA TÍPICO</span>
+            <p class="font-body-md text-[11px] text-white/70 mt-2">Bordes borrosos, fuentes deformadas, sin exportación vectorial.</p>
+          </div>
+          <div class="p-pad-md rounded-xl bg-gradient-to-br from-[#ff5500]/25 to-[#d82b6b]/25 border border-white/20 flex flex-col justify-between">
+            <span class="font-label-code text-[10px] text-primary font-bold">SWIPEFORGE</span>
+            <p class="font-body-md text-[11px] text-white font-medium mt-2">Render DOM puro, CSS nativo, escala infinita 4K.</p>
+          </div>
+        </div>
+        <div class="flex justify-between items-center pt-pad-md font-label-code text-caption-xs text-white/70 border-t border-white/10">
+          <span>PARIDAD ESTRUCTURAL</span>
+          <span>04 / 05</span>
+        </div>
+      `;
+    } else if (type === 'cta') {
+      container.innerHTML = `
+        <div class="flex justify-between items-start">
+          <span class="font-label-code text-caption-xs text-primary font-bold uppercase tracking-wider">SIGUIENTE PASO</span>
+          <span class="font-label-code text-caption-xs px-2 py-0.5 rounded-DEFAULT bg-white/10 backdrop-blur-md text-white border border-white/15">SLIDE 05</span>
+        </div>
+        <div class="my-auto flex flex-col gap-pad-md text-center items-center">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#ff5500] to-[#d82b6b] flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,85,0,0.5)]">
+            <span class="material-symbols-outlined text-headline-lg">bookmark</span>
+          </div>
+          <h3 class="font-headline-lg text-headline-md font-bold text-white">
+            Guarda este carrusel para tu próxima publicación.
+          </h3>
+          <p class="font-body-md text-caption-xs text-white/80 max-w-xs">
+            Disponible para bifurcar en GitHub bajo licencia MIT sin atribución obligatoria.
+          </p>
+        </div>
+        <div class="flex justify-between items-center pt-pad-md font-label-code text-caption-xs text-white/70 border-t border-white/10 w-full">
+          <span>@swipeforge</span>
+          <span class="text-primary font-bold">FIN DEL MÓDULO ■</span>
+        </div>
+      `;
+    }
+  }
+</script></main><footer class="w-full bg-[#08090d]/85 backdrop-blur-xl border-t border-white/10 mt-safezone-block relative z-10"><div class="max-w-7xl mx-auto px-pad-lg py-pad-xl"><div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-pad-lg border-b border-white/10 pb-pad-lg"><div class="space-y-pad-xs"><div class="flex items-center gap-pad-sm"><img alt="SwipeForge Logo" class="w-7 h-7 rounded-lg object-contain shadow-sm border border-white/10" src="https://lh3.googleusercontent.com/aida/AEtjO1WJKayMFBU1no0rSt9xLCbqnrm7c5Iw8M8X4KkELIS51k1dGwKVkaRF6YOhzjQyZVJD_cUr-GQboyuBkOaO6EuADJAj8in_zCgw6fnYQstS6lOy4K6BOmTntQGFMsGNHLbUWBn5naAj7tHBq2FjjXA6r7U_C8sXTZs7mx_um-XOhsnXhskdDUquTTlIci6IwKCfnsypeJs3_XdTFhJ0uNERNxw8o9jaWtickrQ0h8H-WG5Ss-bVS6MTvm0"><span class="font-headline-md text-title-sm tracking-tight text-white font-bold">SwipeForge</span><span class="font-label-caps text-label-caps uppercase tracking-wider text-outline">Swiss Carousel Matrix</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-md">Entorno editorial de alto rendimiento para arquitectos de publicación digital e ingenieros visuales.</p></div><div class="flex flex-wrap items-center gap-pad-md font-label-code text-caption-xs text-on-surface-variant"><div class="flex items-center gap-pad-xs"><kbd class="px-1.5 py-0.5 rounded-DEFAULT bg-white/10 border border-white/15 text-white">⌘</kbd><kbd class="px-1.5 py-0.5 rounded-DEFAULT bg-white/10 border border-white/15 text-white">K</kbd><span class="">Lanzador de Comandos</span></div><div class="flex items-center gap-pad-xs"><kbd class="px-1.5 py-0.5 rounded-DEFAULT bg-white/10 border border-white/15 text-white">G</kbd><span class="">Conmutar Grid Suizo</span></div><div class="flex items-center gap-pad-xs"><kbd class="px-1.5 py-0.5 rounded-DEFAULT bg-white/10 border border-white/15 text-white">R</kbd><span class="">Ratio 4:5 / 1:1</span></div></div></div><div class="flex flex-col sm:flex-row items-center justify-between gap-pad-md pt-pad-lg font-caption-xs text-caption-xs text-on-surface-variant"><div class="">Publicado bajo <a class="underline text-white hover:text-primary transition-colors" href="#">Licencia MIT</a>. Copyright © 2024 SwipeForge Labs.</div><div class="flex items-center gap-pad-lg"><a class="hover:text-primary transition-colors" href="#">Tokens de Diseño</a><a class="hover:text-primary transition-colors" href="#">Especificación CSS Grid</a><a class="hover:text-primary transition-colors" href="#">Changelog v1.4</a><a class="hover:text-primary transition-colors" href="#">Seguridad de Render</a></div></div></div></footer>
+
+
+</body></html>

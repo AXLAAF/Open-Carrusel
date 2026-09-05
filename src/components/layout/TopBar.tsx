@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Settings, Layers } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SwipeForgeLogo } from "@/components/ui/SwipeForgeLogo";
 
 interface TopBarProps {
   title?: string;
@@ -44,7 +45,7 @@ export function TopBar({
   };
 
   return (
-    <header className="h-14 border-b border-border bg-surface flex items-center px-4 gap-3 shrink-0">
+    <header className="h-14 border-b border-border bg-surface/90 backdrop-blur-md flex items-center px-4 gap-3 shrink-0">
       {showBack && (
         <Link href="/">
           <Button variant="ghost" size="icon" aria-label="Back to dashboard">
@@ -52,8 +53,13 @@ export function TopBar({
           </Button>
         </Link>
       )}
-      <div className="flex items-center gap-2 min-w-0">
-        <Layers className="h-5 w-5 text-accent shrink-0" />
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <SwipeForgeLogo className="w-6 h-6 rounded-md shadow-sm" />
+        </Link>
+        <span className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono text-[10px] tracking-wider border border-white/10">
+          v1.4.0
+        </span>
         {isEditing && editable ? (
           <input
             ref={inputRef}

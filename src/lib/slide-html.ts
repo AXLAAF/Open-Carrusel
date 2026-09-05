@@ -115,7 +115,7 @@ export function wrapSlideHtml(
       padding: 80px;
       text-align: center;
       position: relative;
-      background: linear-gradient(135deg, #1B2B6B 0%, #2D4BD4 50%, #00D4FF 100%);
+      background: linear-gradient(135deg, #FF5500 0%, #D82B6B 50%, #79154A 100%);
       color: #FFFFFF;
       overflow: hidden;
     }
