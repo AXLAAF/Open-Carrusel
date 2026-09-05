@@ -49,8 +49,11 @@ next-env.d.ts
 
 # audit / tooling artifacts
 .playwright-cli/
-open-carrusel*.log
+swipeforge*.log
 /.next/cache/
 
-# OS
+# OS / Temporary
 Thumbs.db
+*.Rhistory
+*.tmp
+.tmp*
